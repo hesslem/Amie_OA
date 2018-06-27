@@ -1,10 +1,10 @@
-package amie.mining.assistant.schemamining;
+package amie.mining.assistant;
 
 import amie.data.KB;
-import amie.mining.assistant.MiningAssistant;
-import amie.mining.assistant.MiningOperator;
+//import amie.mining.assistant.MiningAssistant;
+//import amie.mining.assistant.MiningOperator;
 import amie.rules.Rule;
-import javatools.database.Virtuoso;
+//import javatools.database.Virtuoso;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
 
@@ -17,18 +17,18 @@ public class SchemaAttributeMiningAssistant extends MiningAssistant {
 
     ByteString concept;
     //static KB complete;
-    static Virtuoso virtuoso = new Virtuoso();
-    static Object myLock = new Object();
+    //static Virtuoso virtuoso = new Virtuoso();
+    //static Object myLock = new Object();
     int classSize;
 
     public SchemaAttributeMiningAssistant(KB dataSource, KB completeKB) {
         super(dataSource);
-        virtuoso = new Virtuoso();
+        //virtuoso = new Virtuoso();
         //bodyExcludedRelations = Arrays.asList(ByteString.of("<rdf:type>"));
-        super.maxDepth = 8;
+        super.maxDepth = 2;
         super.setEnablePerfectRules(true);
-        super.minPcaConfidence = 0.05;
-        super.minStdConfidence = 0.001;
+        super.minPcaConfidence = 0.0;
+        super.minStdConfidence = 0.0;
         //Class in Head Relationship that should be mined
         this.concept = ByteString.of("<http://dbpedia.org/ontology/City>");
         super.bodyExcludedRelations = Arrays.asList(ByteString.of("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"));
@@ -41,14 +41,14 @@ public class SchemaAttributeMiningAssistant extends MiningAssistant {
         super(dataSource);
         //virtuoso = new Virtuoso();
         //bodyExcludedRelations = Arrays.asList(ByteString.of("<rdf:type>"));
-        super.maxDepth = 8;
+        super.maxDepth = 2;
         super.setEnablePerfectRules(true);
-        super.minPcaConfidence = 0.05;
-        super.minStdConfidence = 0.001;
+        super.minPcaConfidence = 0.0;
+        super.minStdConfidence = 0.0;
         //Class in Head Relationship that should be mined
         this.concept = ByteString.of(type);
         super.bodyExcludedRelations = Arrays.asList(ByteString.of("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"), ByteString.of("<http://purl.org/dc/terms/subject>"));
-        this.classSize = virtuoso.getSubjectSize(this.concept.toString());
+        //this.classSize = virtuoso.getSubjectSize(this.concept.toString());
 
 
     }
@@ -86,7 +86,7 @@ public class SchemaAttributeMiningAssistant extends MiningAssistant {
     }
 
 
-    @MiningOperator(name = "dangling")
+    @Override
     public void getDanglingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
         ByteString[] newEdge = rule.fullyUnboundTriplePattern();
 

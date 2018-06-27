@@ -466,7 +466,7 @@ public class AMIE {
                             setAdditionalParents2(currentRule);
                             this.resultsLock.unlock();
                             // Calculate the metrics
-                            assistant.calculateConfidenceMetrics(currentRule);
+                            assistant.calculatcomputeStandardConfidenceeConfidenceMetrics(currentRule);
                             // Check the confidence threshold and skyline technique.
                             outputRule = assistant.testConfidenceThresholds(currentRule);
                         } else {
