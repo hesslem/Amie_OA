@@ -19,6 +19,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import amie.mining.assistant.SchemaAttributeMiningAssistant;
 import javatools.administrative.Announce;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.MultiMap;
@@ -248,9 +249,11 @@ public class AMIE {
 
         Collection<Rule> seedsPool = new LinkedHashSet<>();
         // Queue initialization
-        if (seeds == null || seeds.isEmpty()) {
+        if ((seeds == null || seeds.isEmpty())&&false) {
             assistant.getInitialAtoms(minInitialSupport, seedsPool);
         } else {
+            seeds = new ArrayList<>();
+            seeds.add(ByteString.of("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"));
             assistant.getInitialAtomsFromSeeds(seeds, minInitialSupport, seedsPool);
         }
 
@@ -422,6 +425,7 @@ public class AMIE {
          * @return
          */
         private Rule pollQuery() {
+            //System.out.println("polls Rule");
             long timeStamp1 = System.currentTimeMillis();
             Rule nextQuery = null;
             if (!queryPool.isEmpty()) {
@@ -431,11 +435,13 @@ public class AMIE {
             }
             long timeStamp2 = System.currentTimeMillis();
             this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
+            //System.out.println("Next query: "+nextQuery);
             return nextQuery;
         }
 
         @Override
         public void run() {
+            //System.out.println("in Run()");
             synchronized (this.done) {
                 this.done = false;
             }
@@ -447,7 +453,7 @@ public class AMIE {
                 }
 
                 if (currentRule != null) {
-                  //  System.out.println("Dequeued:"+currentRule);
+                    //System.out.println("Dequeued:"+currentRule);
                     if (this.idle) {
                         this.idle = false;
                         this.sharedCounter.decrementAndGet();
@@ -466,7 +472,7 @@ public class AMIE {
                             setAdditionalParents2(currentRule);
                             this.resultsLock.unlock();
                             // Calculate the metrics
-                            assistant.calculatcomputeStandardConfidenceeConfidenceMetrics(currentRule);
+                            assistant.calculateConfidenceMetrics(currentRule);
                             // Check the confidence threshold and skyline technique.
                             outputRule = assistant.testConfidenceThresholds(currentRule);
                         } else {
@@ -1213,6 +1219,7 @@ public class AMIE {
         		break;
             case "default" :
                 mineAssistant = new DefaultMiningAssistant(dataSource);
+                //mineAssistant = new SchemaAttributeMiningAssistant(dataSource, "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>");
                 break;
             case "signatured" :
             	mineAssistant = new RelationSignatureDefaultMiningAssistant(dataSource);
@@ -1290,20 +1297,20 @@ public class AMIE {
         mineAssistant.setKbSchema(schemaSource);
         mineAssistant.setEnabledConfidenceUpperBounds(enableConfidenceUpperBounds);
         mineAssistant.setEnabledFunctionalityHeuristic(enableFunctionalityHeuristic);
-        mineAssistant.setMaxDepth(maxDepth);
-        mineAssistant.setStdConfidenceThreshold(minStdConf);
-        mineAssistant.setPcaConfidenceThreshold(minPCAConf);
+        //mineAssistant.setMaxDepth(maxDepth);
+        //mineAssistant.setStdConfidenceThreshold(minStdConf);
+        //mineAssistant.setPcaConfidenceThreshold(minPCAConf);
         mineAssistant.setAllowConstants(allowConstants);
         mineAssistant.setEnforceConstants(enforceConstants);
         mineAssistant.setBodyExcludedRelations(bodyExcludedRelations);
         mineAssistant.setHeadExcludedRelations(headExcludedRelations);
         mineAssistant.setTargetBodyRelations(bodyTargetRelations);
-        mineAssistant.setCountAlwaysOnSubject(countAlwaysOnSubject);
+        //mineAssistant.setCountAlwaysOnSubject(countAlwaysOnSubject);
         mineAssistant.setRecursivityLimit(recursivityLimit);
         mineAssistant.setAvoidUnboundTypeAtoms(avoidUnboundTypeAtoms);
         mineAssistant.setExploitMaxLengthOption(exploitMaxLengthForRuntime);
         mineAssistant.setEnableQueryRewriting(enableQueryRewriting);
-        mineAssistant.setEnablePerfectRules(enablePerfectRulesPruning);
+        //mineAssistant.setEnablePerfectRules(enablePerfectRulesPruning);
         mineAssistant.setVerbose(verbose);
 
         System.out.println(mineAssistant.getDescription());

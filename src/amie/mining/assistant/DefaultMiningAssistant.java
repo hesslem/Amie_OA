@@ -30,6 +30,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	
 	public DefaultMiningAssistant(KB dataSource) {
 		super(dataSource);
+		this.maxDepth = 2;
 		this.hardQueries = Collections.synchronizedMap(new HashMap<Pair<ByteString, Boolean>, Long>());
 		// TODO Auto-generated constructor stub
 	}

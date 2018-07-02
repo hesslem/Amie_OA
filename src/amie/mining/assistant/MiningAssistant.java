@@ -358,7 +358,7 @@ public class MiningAssistant{
 		
 		ByteString[] newEdge = emptyQuery.fullyUnboundTriplePattern();		
 		emptyQuery.getTriples().add(newEdge);
-		
+
 		for (ByteString relation: relations) {
 			newEdge[1] = relation;
 			
