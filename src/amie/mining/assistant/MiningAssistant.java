@@ -358,7 +358,7 @@ public class MiningAssistant{
 		
 		ByteString[] newEdge = emptyQuery.fullyUnboundTriplePattern();		
 		emptyQuery.getTriples().add(newEdge);
-
+		
 		for (ByteString relation: relations) {
 			newEdge[1] = relation;
 			
@@ -785,9 +785,9 @@ public class MiningAssistant{
 	/**
 	 * Given two relations and the positions at which they join, it returns the number 
 	 * of entities in the overlap of such positions.
-	 * @param joinInformation
+	 * @param jinfo
 	 * @param r1
-	 * @param rh
+	 * @param r2
 	 * @return
 	 */
 	private double computeOverlap(int[] jinfo, ByteString r1, ByteString r2) {
