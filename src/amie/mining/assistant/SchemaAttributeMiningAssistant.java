@@ -185,16 +185,15 @@ public class SchemaAttributeMiningAssistant extends MiningAssistant {
 
     @Override
     public boolean testConfidenceThresholds(Rule candidate) {
-        if (getFrequency(candidate) > 0.01) {
-            //System.out.println("Frequency tested");
+        if (getOAConfidence(candidate) > 0.8) {
+            System.out.println("Frequency tested");
             //candidate.setClassConfidence(this.getClassConfidence(candidate));
-            if (getClassConfidence(candidate) > 0.01) {
-                return true;
-            } else {
-                return false;
-            }
+            return true;
+
         } else {
+
             return false;
+
         }
     }
 
@@ -311,6 +310,11 @@ public class SchemaAttributeMiningAssistant extends MiningAssistant {
         System.out.println(classConfidence);
         //System.out.println("CONFIDENCE " + classConfidence);
         return classConfidence;
+    }
+
+    public double getOAConfidence(Rule r){
+
+
     }
 
     @Override
