@@ -311,10 +311,38 @@ public class SchemaAttributeMiningAssistant extends MiningAssistant {
         //System.out.println("CONFIDENCE " + classConfidence);
         return classConfidence;
     }
-
+    /**
+     * Returns the confidence of a relationship to be obligatory
+     *
+     * @param r
+     * @return The confidence
+     *
+     *
+     */
     public double getOAConfidence(Rule r){
+        ByteString[] head = r.getHead();
+        List<ByteString[]> body = r.getBody();
+        ByteString countVariable = head[2];
+        IntHashMap<ByteString> obligatorySupportList = kb.countProjectionBindings(head, body, countVariable);
+        double obligatorySupport = obligatorySupportList.get(ByteString.of("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"));
+
+        return obligatorySupport;
+
+    }
+
+    /**
+     *Returns the embedding score of a relationship
+     *
+     * @param r
+     * @return Score
+     */
+    public double getOAScore(Rule r){
 
 
+
+
+
+        return 0.0;
     }
 
     @Override
