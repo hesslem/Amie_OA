@@ -908,7 +908,7 @@ public class KB {
 		}
 		throw new IllegalArgumentException(
 				"Invalid combination of variables in " + toString(triple)
-						+ " pos1 = " + pos1 + " pos2=" + pos2);
+						+ " pos1 = " + pos1 + " pos2 = " + pos2);
 	}
 	
 	/**

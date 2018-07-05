@@ -856,7 +856,7 @@ public class Rule {
             stringBuilder.append(pattern[1]);
             stringBuilder.append(" ");
             stringBuilder.append(pattern[2]);
-            stringBuilder.append("  ");
+            stringBuilder.append(" , ");
         }
 
         return stringBuilder.toString();

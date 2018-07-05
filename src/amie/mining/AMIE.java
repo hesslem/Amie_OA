@@ -20,6 +20,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import amie.mining.assistant.SchemaAttributeMiningAssistant;
+import amie.mining.assistant.OldSchemaAttributeMiningAssistant;
 import javatools.administrative.Announce;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.MultiMap;
@@ -425,17 +426,18 @@ public class AMIE {
          * @return
          */
         private Rule pollQuery() {
-            //System.out.println("polls Rule");
+            System.out.println("polls Rule");
             long timeStamp1 = System.currentTimeMillis();
             Rule nextQuery = null;
             if (!queryPool.isEmpty()) {
                 Iterator<Rule> iterator = queryPool.iterator();
                 nextQuery = iterator.next();
                 iterator.remove();
+                System.out.println("polled");
             }
             long timeStamp2 = System.currentTimeMillis();
             this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
-            //System.out.println("Next query: "+nextQuery);
+            System.out.println("Next query: "+nextQuery);
             return nextQuery;
         }
 
@@ -453,7 +455,7 @@ public class AMIE {
                 }
 
                 if (currentRule != null) {
-                    //System.out.println("Dequeued:"+currentRule);
+                    System.out.println("Dequeued:"+currentRule);
                     if (this.idle) {
                         this.idle = false;
                         this.sharedCounter.decrementAndGet();
@@ -492,13 +494,17 @@ public class AMIE {
                     if (furtherRefined) {
                         long timeStamp1 = System.currentTimeMillis();
                         double threshold = getCountThreshold(currentRule);
+                        System.out.println("Count threshold: "+threshold);
                         List<Rule> temporalOutput = new ArrayList<Rule>();
                         List<Rule> temporalOutputDanglingEdges = new ArrayList<Rule>();
 
                         // Application of the mining operators
                         assistant.getClosingAtoms(currentRule, threshold, temporalOutput);
+                        System.out.println("got closing atoms");
                         assistant.getDanglingAtoms(currentRule, threshold, temporalOutputDanglingEdges);
+                        System.out.println("got dangling");
                         assistant.getInstantiatedAtoms(currentRule, threshold, temporalOutputDanglingEdges, temporalOutput);
+                        System.out.println("Applied mining operators: "+temporalOutputDanglingEdges+"\n"+currentRule.toString());
                         
                         long timeStamp2 = System.currentTimeMillis();
                         this._specializationTime += (timeStamp2 - timeStamp1);
@@ -748,7 +754,8 @@ public class AMIE {
         boolean enablePerfectRulesPruning = true;
         long sourcesLoadingTime = 0l;
         /*********************************/
-        int nProcessors = Runtime.getRuntime().availableProcessors();
+        //int nProcessors = Runtime.getRuntime().availableProcessors();
+        int nProcessors = 5;
         String bias = "default"; // Counting support on the two head variables.
         Metric metric = Metric.HeadCoverage; // Metric used to prune the search space.
         MiningAssistant mineAssistant = null;
@@ -1218,8 +1225,8 @@ public class AMIE {
         		mineAssistant = new MiningAssistant(dataSource);
         		break;
             case "default" :
-                mineAssistant = new DefaultMiningAssistant(dataSource);
-                //mineAssistant = new SchemaAttributeMiningAssistant(dataSource, "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>");
+                //mineAssistant = new DefaultMiningAssistant(dataSource);
+                mineAssistant = new OldSchemaAttributeMiningAssistant(dataSource, "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>");
                 break;
             case "signatured" :
             	mineAssistant = new RelationSignatureDefaultMiningAssistant(dataSource);
