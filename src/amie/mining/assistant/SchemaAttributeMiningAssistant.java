@@ -342,6 +342,7 @@ public class SchemaAttributeMiningAssistant extends MiningAssistant {
 
 
 
+
         return 0.0;
     }
 

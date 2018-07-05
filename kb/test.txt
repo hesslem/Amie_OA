@@ -63,4 +63,5 @@
 <http://dbpedia.org/resource/Penuel>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://dbpedia.org/ontology/Place>
 <http://dbpedia.org/resource/Penuel>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://dbpedia.org/ontology/Place>
 <http://dbpedia.org/resource/Penuel>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://dbpedia.org/ontology/Work>
-<http://dbpedia.org/resource/Penuel>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>	<http://dbpedia.org/ontology/Work>
+<http://dbpedia.org/resource/Penuel>	<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>   <http://dbpedia.org/ontology/Work>
+<http://dbpedia.org/resource/Penuel>	<testRelation>	<testEntity>

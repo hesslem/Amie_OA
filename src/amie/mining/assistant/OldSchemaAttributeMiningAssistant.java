@@ -115,11 +115,20 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
             System.out.println("JOIN VARIABLES " + joinVariable);
             newEdge[joinPosition] = joinVariable;
+            newEdge[1] = ByteString.of("<testRelation>");
             rule.getTriples().add(newEdge);
             System.out.println("JOIN VARIABLE " + joinVariable);
             System.out.println("NEWEDGE " + newEdge[1]);
             System.out.println("Functional Variable " + rule.getFunctionalVariable());
+
             System.out.println("CurrentRule " + rule.toString());
+
+            ByteString[] head = rule.getHead();
+            ByteString countVariable = null;
+            countVariable = head[0];
+            long support = kb.countDistinct(countVariable, rule.getTriples());
+            System.out.println("Class Support: "+ support);
+
             IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1],
                     rule.getFunctionalVariable(), rule.getTriples());
             System.out.println("HASHMAPSIZE " + promisingRelations.size());
