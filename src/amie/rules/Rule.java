@@ -178,6 +178,8 @@ public class Rule {
      */
     private int id;
 
+    public double ClassConfidence;
+
     /**
      * It puts the arguments in an array.
      *
@@ -1018,6 +1020,15 @@ public class Rule {
         return getPcaConfidence() == 1.0;
     }
 
+    public void setClassConfidence(double confidenceValue){
+        this.ClassConfidence = confidenceValue;
+    }
+
+    public double getClassConfidence(){
+
+
+        return ClassConfidence;
+    }
     /**
      * Return a key for the rule based on the constant arguments of the head
      * atom. It can be used as a hash key.
@@ -1234,10 +1245,11 @@ public class Rule {
     }
 
     public static void printRuleHeaders() {
-        System.out.println("Rule\tHead Coverage\tStd Confidence\t"
+        /*System.out.println("Rule\tHead Coverage\tStd Confidence\t"
                 + "PCA Confidence\tPositive Examples\tBody size\tPCA Body size\t"
                 + "Functional variable\tStd. Lower Bound\tPCA Lower Bound\t"
-                + "PCA Conf estimation");
+                + "PCA Conf estimation");*/
+        System.out.println("Rule\tClass Confidence");
     }
 
     public String getRuleString() {
@@ -1290,6 +1302,7 @@ public class Rule {
         StringBuilder strBuilder = new StringBuilder();
         strBuilder.append(getRuleString());
 
+        /*
         strBuilder.append("\t" + df.format(getHeadCoverage()));
         strBuilder.append("\t" + df.format(getStdConfidence()));
         strBuilder.append("\t" + df.format(getPcaConfidence()));
@@ -1300,6 +1313,8 @@ public class Rule {
         strBuilder.append("\t" + _stdConfidenceUpperBound);
         strBuilder.append("\t" + _pcaConfidenceUpperBound);
         strBuilder.append("\t" + _pcaConfidenceEstimation);
+        */
+        strBuilder.append("\t" + getClassConfidence());
 
         return strBuilder.toString();
     }

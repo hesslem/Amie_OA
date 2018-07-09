@@ -426,18 +426,18 @@ public class AMIE {
          * @return
          */
         private Rule pollQuery() {
-            System.out.println("polls Rule");
+            //System.out.println("polls Rule");
             long timeStamp1 = System.currentTimeMillis();
             Rule nextQuery = null;
             if (!queryPool.isEmpty()) {
                 Iterator<Rule> iterator = queryPool.iterator();
                 nextQuery = iterator.next();
                 iterator.remove();
-                System.out.println("polled");
+                //System.out.println("polled");
             }
             long timeStamp2 = System.currentTimeMillis();
             this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
-            System.out.println("Next query: "+nextQuery);
+            //System.out.println("Next query: "+nextQuery);
             return nextQuery;
         }
 
@@ -455,7 +455,7 @@ public class AMIE {
                 }
 
                 if (currentRule != null) {
-                    System.out.println("Dequeued:"+currentRule);
+                    //System.out.println("Dequeued:"+currentRule);
                     if (this.idle) {
                         this.idle = false;
                         this.sharedCounter.decrementAndGet();
@@ -464,7 +464,14 @@ public class AMIE {
                     // Check if the rule meets the language bias and confidence thresholds and
                     // decide whether to output it.
                     boolean outputRule = false;
-                    if (currentRule.isClosed()) {
+                    //System.out.println("Derzeitige Regel: " + currentRule +"Rule length: "+currentRule.getRealLength());
+                    if(currentRule.getRealLength() > 1){
+
+                        assistant.calculateConfidenceMetrics(currentRule);
+                        outputRule = assistant.testConfidenceThresholds(currentRule);
+                    }
+
+                    /*if (true) {
                         long timeStamp1 = System.currentTimeMillis();
                         boolean ruleSatisfiesConfidenceBounds
                                 = assistant.calculateConfidenceBoundsAndApproximations(currentRule);
@@ -477,34 +484,36 @@ public class AMIE {
                             assistant.calculateConfidenceMetrics(currentRule);
                             // Check the confidence threshold and skyline technique.
                             outputRule = assistant.testConfidenceThresholds(currentRule);
+                            System.out.println("outputrule: "+outputRule);
                         } else {
                             outputRule = false;
                         }
                         long timeStamp2 = System.currentTimeMillis();
                         this._scoringTime += (timeStamp2 - timeStamp1);
-                    }
+                    }*/
 
                     // Check if we should further refine the rule
                     boolean furtherRefined = true;
                     if (assistant.isEnablePerfectRules()) {
-                        furtherRefined = !currentRule.isPerfect();
+                        furtherRefined = (!(currentRule.getClassConfidence() == 1.0));
+                        //furtherRefined = !currentRule.isPerfect();
                     }
 
                     // If so specialize it
                     if (furtherRefined) {
                         long timeStamp1 = System.currentTimeMillis();
                         double threshold = getCountThreshold(currentRule);
-                        System.out.println("Count threshold: "+threshold);
+                        //System.out.println("Count threshold: "+threshold);
                         List<Rule> temporalOutput = new ArrayList<Rule>();
                         List<Rule> temporalOutputDanglingEdges = new ArrayList<Rule>();
 
                         // Application of the mining operators
                         assistant.getClosingAtoms(currentRule, threshold, temporalOutput);
-                        System.out.println("got closing atoms");
+                        //System.out.println("got closing atoms");
                         assistant.getDanglingAtoms(currentRule, threshold, temporalOutputDanglingEdges);
-                        System.out.println("got dangling");
+                        //System.out.println("got dangling");
                         assistant.getInstantiatedAtoms(currentRule, threshold, temporalOutputDanglingEdges, temporalOutput);
-                        System.out.println("Applied mining operators: "+temporalOutputDanglingEdges+"\n"+currentRule.toString());
+                        //System.out.println("Applied mining operators: "+temporalOutputDanglingEdges+"\n"+currentRule.toString());
                         
                         long timeStamp2 = System.currentTimeMillis();
                         this._specializationTime += (timeStamp2 - timeStamp1);
@@ -513,9 +522,11 @@ public class AMIE {
                             timeStamp1 = System.currentTimeMillis();
                             queryPool.addAll(temporalOutput);
                             // This part of the code, check please!
-                            if (currentRule.getRealLength() < assistant.getMaxDepth() - 1) {
+                            if (currentRule.getRealLength() <= assistant.getMaxDepth() - 1) {
                                 queryPool.addAll(temporalOutputDanglingEdges);
+                                //System.out.println("Test");
                             }
+                            //System.out.println("Query pool: "+queryPool);
 
                             timeStamp2 = System.currentTimeMillis();
                             this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
@@ -1226,7 +1237,7 @@ public class AMIE {
         		break;
             case "default" :
                 //mineAssistant = new DefaultMiningAssistant(dataSource);
-                mineAssistant = new OldSchemaAttributeMiningAssistant(dataSource, "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>");
+                mineAssistant = new OldSchemaAttributeMiningAssistant(dataSource, "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", false);
                 break;
             case "signatured" :
             	mineAssistant = new RelationSignatureDefaultMiningAssistant(dataSource);
