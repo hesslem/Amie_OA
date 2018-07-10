@@ -8,10 +8,7 @@ import amie.rules.Rule;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import amie.embedding.TransEClient;
 
@@ -139,6 +136,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
             IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1],
                     rule.getTriples().get(0)[0], rule.getTriples());
             //System.out.println("HASHMAPSIZE " + promisingRelations.size());
+            //System.out.println(promisingRelations);
             rule.getTriples().remove(nPatterns);
 
             int danglingPosition = (joinPosition == 0 ? 2 : 0);
@@ -196,12 +194,14 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
         if(this.withEmbedding){
             return (getOAScore(candidate) > 0);
         }
-
+        getOAScore(candidate);
         if(candidate.getClassConfidence() > 0.05){
             return true;
         } else {
             return false;
         }
+
+
         /*if (getFrequency(candidate) > 0.01) {
             System.out.println("Frequency tested");
             if (getClassConfidence(candidate) > 0.01) {
@@ -350,6 +350,31 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
     public double getOAScore(Rule r){
 
         List<ByteString[]> fact = r.getBody();
+        ByteString[] head = r.getHead();
+        System.out.println(fact.get(0)[0]);
+        System.out.println(head[0]);
+
+        for (int varPos = 0; varPos <= 2; varPos += 2){
+
+            if (!(KB.isVariable(fact.get(0)[varPos])) && !(head[0].equals(fact.get(0)[varPos]))){
+                continue;
+            }
+
+            Map<ByteString, IntHashMap<ByteString>> results = kb.resultsTwoVariables(0, 2, fact.get(0));
+
+
+            //IntHashMap<ByteString> constants = kb.frequentBindingsOf(fact.get(0)[2], fact.get(0)[varPos], fact);
+
+            System.out.println(results);
+
+
+            KB.Instantiator instance = new KB.Instantiator(fact, fact.get(0)[varPos]);
+
+
+
+
+        }
+
 
 
 
