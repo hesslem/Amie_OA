@@ -349,38 +349,72 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
     public double getOAScore(Rule r){
 
-        List<ByteString[]> fact = r.getBody();
+        List<ByteString[]> body = r.getBody();
         ByteString[] head = r.getHead();
-        System.out.println(fact.get(0)[0]);
-        System.out.println(head[0]);
+        //List<ByteString[]> headList = new ArrayList<>();
+        //System.out.println(fact.get(0)[0]);
+        //System.out.println(head[0]);
+
+        int relId = getId(body.get(0)[1]);
 
         for (int varPos = 0; varPos <= 2; varPos += 2){
 
-            if (!(KB.isVariable(fact.get(0)[varPos])) && !(head[0].equals(fact.get(0)[varPos]))){
+            if (!(KB.isVariable(body.get(0)[varPos])) && !(head[0].equals(body.get(0)[varPos]))){
                 continue;
             }
 
-            Map<ByteString, IntHashMap<ByteString>> results = kb.resultsTwoVariables(0, 2, fact.get(0));
+            IntHashMap<ByteString> subjects = kb.resultsOneVariable(head);
 
+            double totalSize = subjects.size();
 
-            //IntHashMap<ByteString> constants = kb.frequentBindingsOf(fact.get(0)[2], fact.get(0)[varPos], fact);
-
-            System.out.println(results);
-
-
-            KB.Instantiator instance = new KB.Instantiator(fact, fact.get(0)[varPos]);
+            double scoreSum;
 
 
 
+            for (ByteString subject: subjects) {
+                int subjId = getId(subject);
+
+                double maxScore, currentScore;
+
+                for (){
+                    int objId = getId();
+
+                    if (varPos == 0){
+                        currentScore = embedding.getScore(subjId, relId, objId);
+                        if (maxScore < currentScore){
+                            maxScore = currentScore;
+                        }
+                    } else {
+                        currentScore = embedding.getScore(objId, relId, subjId);
+                        if (maxScore < currentScore){
+                            maxScore = currentScore;
+                        }
+                    }
+                }
+                scoreSum = scoreSum + maxScore;
+
+            }
+
+            System.out.println(subjects);
+
+
+            //KB.Instantiator instance = new KB.Instantiator(fact, fact.get(0)[varPos]);
+
+            return (scoreSum/totalSize);
 
         }
 
 
 
 
-        double embeddingScore = embedding.getScore(0,0,0);
+        //double embeddingScore = embedding.getScore(0,0,0);
 
 
         return 0.0;
+    }
+
+    public int getId(ByteString entity){
+
+        return 0;
     }
 }
