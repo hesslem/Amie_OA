@@ -68,6 +68,8 @@ public class KB {
 	/** Number of facts per relation */
 	protected final IntHashMap<ByteString> relationSize = new IntHashMap<ByteString>();
 
+	protected IntHashMap<ByteString> allEntities = new IntHashMap<ByteString>();
+
 	// ---------------------------------------------------------------------------
 	// Statistics
 	// ---------------------------------------------------------------------------
@@ -3147,7 +3149,21 @@ public class KB {
 	public List<ByteString> getRelationsList() {
 		return relationSize.decreasingKeys();
 	}
-	
+
+
+	public void setEntitiyList(){
+	    IntHashMap<ByteString> allEntities = new IntHashMap<ByteString>();
+
+	    allEntities.add(this.subjectSize);
+	    allEntities.add(this.objectSize);
+
+	    this.allEntities = allEntities;
+    }
+
+    public IntHashMap<ByteString> getAllEntities(){
+	    return this.allEntities;
+    }
+
 	@Override
 	public String toString() {
 		StringBuilder strBuilder = new StringBuilder();

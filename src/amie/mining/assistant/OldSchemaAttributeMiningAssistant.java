@@ -55,8 +55,9 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
         ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of("?y"));
         this.classSize = kb.count(query);
         if (withEmbedding){
-            this.embedding = new TransEClient(" ","L1");
+            this.embedding = new TransEClient("/home/","L1");
         }
+        kb.setEntitiyList();
 
 
     }
@@ -367,17 +368,19 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
             double totalSize = subjects.size();
 
-            double scoreSum;
+            double scoreSum = 0.0;
 
 
 
             for (ByteString subject: subjects) {
                 int subjId = getId(subject);
 
-                double maxScore, currentScore;
+                double maxScore = 0.0;
+                double currentScore;
+ 
+                for (ByteString object: kb.getAllEntities()){
 
-                for (){
-                    int objId = getId();
+                    int objId = getId(object);
 
                     if (varPos == 0){
                         currentScore = embedding.getScore(subjId, relId, objId);
@@ -398,8 +401,6 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
             System.out.println(subjects);
 
 
-            //KB.Instantiator instance = new KB.Instantiator(fact, fact.get(0)[varPos]);
-
             return (scoreSum/totalSize);
 
         }
@@ -414,7 +415,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
     }
 
     public int getId(ByteString entity){
-
+        //datei mit entity und id
         return 0;
     }
 }
