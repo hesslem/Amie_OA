@@ -254,7 +254,7 @@ public class AMIE {
             assistant.getInitialAtoms(minInitialSupport, seedsPool);
         } else {
             seeds = new ArrayList<>();
-            seeds.add(ByteString.of("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"));
+            seeds.add(ByteString.of("wdt:P106"));
             assistant.getInitialAtomsFromSeeds(seeds, minInitialSupport, seedsPool);
         }
 
@@ -464,8 +464,8 @@ public class AMIE {
                     // Check if the rule meets the language bias and confidence thresholds and
                     // decide whether to output it.
                     boolean outputRule = false;
-                    //System.out.println("Derzeitige Regel: " + currentRule +"Rule length: "+currentRule.getRealLength());
-                    if(currentRule.getRealLength() > 1){
+                    System.out.println("Derzeitige Regel: " + currentRule +"Rule length: "+currentRule.getRealLength());
+                    if(currentRule.getRealLength() == assistant.getMaxDepth()){
 
                         assistant.calculateConfidenceMetrics(currentRule);
                         outputRule = assistant.testConfidenceThresholds(currentRule);
@@ -493,11 +493,11 @@ public class AMIE {
                     }*/
 
                     // Check if we should further refine the rule
-                    boolean furtherRefined = true;
-                    if (assistant.isEnablePerfectRules()) {
+                    boolean furtherRefined = currentRule.getRealLength() < 2;
+                    /*if (currentRule.getRealLength() < 2) {
                         furtherRefined = (!(currentRule.getClassConfidence() == 1.0));
                         //furtherRefined = !currentRule.isPerfect();
-                    }
+                    }*/
 
                     // If so specialize it
                     if (furtherRefined) {
@@ -505,14 +505,14 @@ public class AMIE {
                         double threshold = getCountThreshold(currentRule);
                         //System.out.println("Count threshold: "+threshold);
                         List<Rule> temporalOutput = new ArrayList<Rule>();
-                        List<Rule> temporalOutputDanglingEdges = new ArrayList<Rule>();
+                        //List<Rule> temporalOutputDanglingEdges = new ArrayList<Rule>();
 
                         // Application of the mining operators
-                        assistant.getClosingAtoms(currentRule, threshold, temporalOutput);
+                        //assistant.getClosingAtoms(currentRule, threshold, temporalOutput);
                         //System.out.println("got closing atoms");
-                        assistant.getDanglingAtoms(currentRule, threshold, temporalOutputDanglingEdges);
+                        assistant.getDanglingAtoms(currentRule, threshold, temporalOutput);
                         //System.out.println("got dangling");
-                        assistant.getInstantiatedAtoms(currentRule, threshold, temporalOutputDanglingEdges, temporalOutput);
+                        //assistant.getInstantiatedAtoms(currentRule, threshold, temporalOutputDanglingEdges, temporalOutput);
                         //System.out.println("Applied mining operators: "+temporalOutputDanglingEdges+"\n"+currentRule.toString());
                         
                         long timeStamp2 = System.currentTimeMillis();
@@ -522,10 +522,10 @@ public class AMIE {
                             timeStamp1 = System.currentTimeMillis();
                             queryPool.addAll(temporalOutput);
                             // This part of the code, check please!
-                            if (currentRule.getRealLength() <= assistant.getMaxDepth() - 1) {
+                            /*if (currentRule.getRealLength() <= assistant.getMaxDepth() - 1) {
                                 queryPool.addAll(temporalOutputDanglingEdges);
                                 //System.out.println("Test");
-                            }
+                            }*/
                             //System.out.println("Query pool: "+queryPool);
 
                             timeStamp2 = System.currentTimeMillis();
@@ -1237,7 +1237,7 @@ public class AMIE {
         		break;
             case "default" :
                 //mineAssistant = new DefaultMiningAssistant(dataSource);
-                mineAssistant = new OldSchemaAttributeMiningAssistant(dataSource, "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", false);
+                mineAssistant = new OldSchemaAttributeMiningAssistant(dataSource, "wdt:P106", true);
                 break;
             case "signatured" :
             	mineAssistant = new RelationSignatureDefaultMiningAssistant(dataSource);

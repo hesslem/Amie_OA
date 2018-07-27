@@ -178,7 +178,9 @@ public class Rule {
      */
     private int id;
 
-    public double ClassConfidence;
+    protected double ClassConfidence;
+
+    protected double OAScore;
 
     /**
      * It puts the arguments in an array.
@@ -1025,10 +1027,17 @@ public class Rule {
     }
 
     public double getClassConfidence(){
-
-
         return ClassConfidence;
     }
+
+    public void setOAScore(double OAScore){
+        this.OAScore = OAScore;
+    }
+
+    public double getOAScore(){
+        return this.OAScore;
+    }
+
     /**
      * Return a key for the rule based on the constant arguments of the head
      * atom. It can be used as a hash key.
@@ -1249,7 +1258,8 @@ public class Rule {
                 + "PCA Confidence\tPositive Examples\tBody size\tPCA Body size\t"
                 + "Functional variable\tStd. Lower Bound\tPCA Lower Bound\t"
                 + "PCA Conf estimation");*/
-        System.out.println("Rule\tClass Confidence");
+        //System.out.println("Rule\tClass Confidence");
+        System.out.println("Rule\tOA Score");
     }
 
     public String getRuleString() {
@@ -1314,7 +1324,9 @@ public class Rule {
         strBuilder.append("\t" + _pcaConfidenceUpperBound);
         strBuilder.append("\t" + _pcaConfidenceEstimation);
         */
-        strBuilder.append("\t" + getClassConfidence());
+        //strBuilder.append("\t" + getClassConfidence());
+
+        strBuilder.append("\t" + getOAScore());
 
         return strBuilder.toString();
     }

@@ -70,6 +70,8 @@ public class KB {
 
 	protected IntHashMap<ByteString> allEntities = new IntHashMap<ByteString>();
 
+	protected IntHashMap<ByteString> allClasses = new IntHashMap<>();
+
 	// ---------------------------------------------------------------------------
 	// Statistics
 	// ---------------------------------------------------------------------------
@@ -3162,6 +3164,25 @@ public class KB {
 
     public IntHashMap<ByteString> getAllEntities(){
 	    return this.allEntities;
+    }
+
+    public void setClassList(){
+        IntHashMap<ByteString> allClasses = new IntHashMap<ByteString>();
+
+        for (ByteString entity : this.allEntities){
+            Set<ByteString> classes = resultsOneVariable(entity, ByteString.of("wdt:P106"), ByteString.of("?y"));
+            for (ByteString typeClass : classes){
+                if (!(allClasses.contains(typeClass))){
+                    allClasses.add(typeClass);
+                }
+            }
+        }
+		System.out.println(allClasses);
+        this.allClasses = allClasses;
+    }
+
+    public IntHashMap<ByteString> getAllClasses(){
+        return this.allClasses;
     }
 
 	@Override

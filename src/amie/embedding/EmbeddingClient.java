@@ -1,5 +1,8 @@
 package amie.embedding;
 
+import javatools.datatypes.ByteString;
+import javatools.datatypes.IntHashMap;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by hovinhthinh on 11/13/17.
  */
 
+
 // Embeddding Client should support concurrent queries.
 public abstract class EmbeddingClient {
     public static final int SO_RANK_LIMIT = 10000;
@@ -21,25 +25,37 @@ public abstract class EmbeddingClient {
     protected int nEntities, nRelations, eLength;
     protected FactEncodedSetPerPredicate[] trueFacts;
     protected ConcurrentHashMap<Long, Double>[] cachedRankQueries;
+    protected IntHashMap<ByteString> entity2id = new IntHashMap<>();
+    protected IntHashMap<ByteString> relation2id = new IntHashMap<>();
 
     public EmbeddingClient(String workspace) {
         try {
             // Read nEntities, nRelations, eLength.
-            BufferedReader metaIn = new BufferedReader(new InputStreamReader(new FileInputStream(new File(workspace +
-                    "/meta.txt"))));
-            String[] arr = metaIn.readLine().split("\\s++");
+            BufferedReader entityIn = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/kalo/notebooks/entity2id.txt"))));
+            BufferedReader relationIn = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/kalo/notebooks/relation2id.txt"))));
+            String[] arr = entityIn.readLine().split("\\s++");
             nEntities = Integer.parseInt(arr[0]);
-            nRelations = Integer.parseInt(arr[1]);
+            System.out.println("Entities: "+nEntities);
+            arr = relationIn.readLine().split("\\s++");
+            nRelations = Integer.parseInt(arr[0]);
+            System.out.println("Relations: "+nRelations);
 
-            HashMap<String, Integer> entitiesStringMap = new HashMap<>(), relationsStringMap = new HashMap<>();
             for (int i = 0; i < nEntities; ++i) {
-                entitiesStringMap.put(metaIn.readLine(), i);
+                String[] row = entityIn.readLine().split("\\s++");
+                if(row[1].equals("Point(2.9")){
+                    continue;
+                }
+                this.entity2id.add(ByteString.of(row[0]), Integer.parseInt(row[1]));
             }
+            System.out.println("Done entities");
             for (int i = 0; i < nRelations; ++i) {
-                relationsStringMap.put(metaIn.readLine(), i);
+                String[] row = relationIn.readLine().split("\\s++");
+                this.relation2id.add(ByteString.of(row[0]), Integer.parseInt(row[1]));
             }
-            metaIn.close();
-
+            System.out.println("Done relations");
+            entityIn.close();
+            relationIn.close();
+            /*
             trueFacts = new FactEncodedSetPerPredicate[nRelations];
             cachedRankQueries = new ConcurrentHashMap[nRelations];
             for (int i = 0; i < nRelations; ++i) {
@@ -74,7 +90,7 @@ public abstract class EmbeddingClient {
                     }
                 }
                 idealIn.close();
-            }
+            }*/
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -128,5 +144,13 @@ public abstract class EmbeddingClient {
         public boolean containFact(int subject, int object) {
             return set.contains(encode(subject, object));
         }
+    }
+
+    public int getEntityId(ByteString entity){
+        return entity2id.get(entity);
+    }
+
+    public int getRelationId(ByteString relation){
+        return relation2id.get(relation);
     }
 }

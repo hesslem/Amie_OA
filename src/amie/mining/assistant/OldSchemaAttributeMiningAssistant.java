@@ -9,6 +9,7 @@ import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import amie.embedding.TransEClient;
 
@@ -48,23 +49,38 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
         super.setEnablePerfectRules(true);
         super.minPcaConfidence = 0.05;
         super.minStdConfidence = 0.001;
+        this.countAlwaysOnSubject = true;
         this.withEmbedding = withEmbedding;
         //Class in Head Relationship that should be mined
         this.concept = ByteString.of(type);
-        super.bodyExcludedRelations = Arrays.asList(ByteString.of("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"), ByteString.of("<http://purl.org/dc/terms/subject>"));
+        super.bodyExcludedRelations = Arrays.asList(ByteString.of("wdt:P106"));
         ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of("?y"));
         this.classSize = kb.count(query);
+        System.out.println("Class Size: "+this.classSize);
         if (withEmbedding){
-            this.embedding = new TransEClient("/home/","L1");
+            this.embedding = new TransEClient("/home/kalo/notebooks/OpenKE","L2");
+            double score = 0.0;
+            score += embedding.getScore(5,0,6);
+            score += embedding.getScore(7,0,8);
+            score += embedding.getScore(9,0,10);
+            score += embedding.getScore(574,9,384);
+            score += embedding.getScore(397626,41,397627);
+            double averageScore = score/5;
+            System.out.println("Average Score"+averageScore);
+
+            System.out.println("ID of wdt:Q1351858: "+embedding.getEntityId(ByteString.of("wdt:Q1351858")));
+            System.out.println("ID of wdt:P20: "+embedding.getRelationId(ByteString.of("wdt:P20")));
+
         }
         kb.setEntitiyList();
+        kb.setClassList();
 
 
     }
 
     @Override
     public String getDescription() {
-        return "Rules of the form r(x,y) r(x,z) => type(x, C) or r(x,c1) r(x,c2) => type(x, C)";
+        return "Rules of the form r(x,y) r(x,z) => type(x, C) or r(x,c1) r(x,c2) => type(x, C)\nwith type: "+this.concept.toString();
     }
 
 
@@ -99,6 +115,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
             //System.out.println(newCandidate);
 
         }
+        System.out.println("Output: "+output);
 
         //System.out.println("got initial Atoms");
 
@@ -136,7 +153,8 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
             IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1],
                     rule.getTriples().get(0)[0], rule.getTriples());
-            //System.out.println("HASHMAPSIZE " + promisingRelations.size());
+
+
             //System.out.println(promisingRelations);
             rule.getTriples().remove(nPatterns);
 
@@ -192,15 +210,94 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
     @Override
     public boolean testConfidenceThresholds(Rule candidate) {
         //System.out.println("Testing Confidence Thresholds");
-        if(this.withEmbedding){
+        /*if(this.withEmbedding){
             return (getOAScore(candidate) > 0);
-        }
-        getOAScore(candidate);
-        if(candidate.getClassConfidence() > 0.05){
-            return true;
-        } else {
+        }*/
+        //System.out.println("Testing rule: "+candidate);
+        /*if (kb.countDistinct(candidate.getHead()[0], candidate.getTriples()) < 100){
+            System.out.println("support of "+candidate+" not big enough");
             return false;
+        }*/
+        if (this.withEmbedding == false) {
+            ByteString mainClass = candidate.getHead()[2];
+            //System.out.println("Current Rule: "+candidate);
+            int count = 0;
+            for (ByteString otherClass : kb.getAllClasses()) {
+
+                if (mainClass.equals(otherClass)){
+                    continue;
+                }
+
+                Set<ByteString> difference = getClassDiff(mainClass, otherClass);
+                Set<ByteString> intersection = getClassIntersect(mainClass, otherClass);
+
+                Set<ByteString> differenceInverse = getClassDiff(otherClass, mainClass);
+                Set<ByteString> intersectionInverse = getClassDiff(otherClass, mainClass);
+
+                Set<ByteString> allEntities = kb.selectDistinct(candidate.getHead()[0], candidate.getTriples());
+
+
+                Rule emptyRule = new Rule();
+                ByteString[] newEdge = emptyRule.fullyUnboundTriplePattern();
+                emptyRule.getTriples().add(newEdge);
+                newEdge[1] = candidate.getHead()[1];
+                newEdge[2] = otherClass;
+                long cardinality = kb.countDistinct(newEdge[0], emptyRule.getTriples());
+                Rule otherRule = new Rule(newEdge, cardinality);
+                ByteString[] newBody = candidate.getBody().get(0);
+                Rule otherClassRule = otherRule.addAtom(newBody, cardinality);
+                //System.out.println("other Rule: "+otherClassRule);
+                Set<ByteString> allEntitiesOtherClass = kb.selectDistinct(otherClassRule.getHead()[0], otherClassRule.getTriples());
+
+                //System.out.println("Diff Size: "+difference.size()+"\tIntersect Size: "+intersection.size());
+
+                if (getConfidence(candidate)*intersection.size() < 1 || getAttributeIntersectCount(intersection, candidate) < 1){
+                    continue;
+                }
+
+                if (difference.size() <= 0||intersection.size() <= 0||differenceInverse.size() <= 0||intersectionInverse.size() <= 0) {
+                    count++;
+                    continue;
+                }
+
+                //System.out.println("Current Rule: "+candidate+"\tRatio: "+Math.abs(Math.log(getConfidenceRatio(candidate, difference, intersection, allEntities)))+"\tLog: "+Math.log(2));
+                if (Math.abs(Math.log(getConfidenceRatio(candidate, difference, intersection, allEntities))) > Math.log(2)){
+                    //System.out.println("Density too big: "+candidate);
+                    return false;
+                }
+
+                if (Math.abs(Math.log(getConfidenceRatio(candidate, differenceInverse, intersectionInverse, allEntitiesOtherClass))) > Math.log(2)){
+                    return false;
+                }
+
+
+
+
+
+            }
+            //System.out.println("Count of "+candidate+" : "+count);
+            if (count == kb.getAllClasses().size()){
+                if (candidate.getClassConfidence() > 0.9) {
+                    return true;
+                } else {
+                    return false;
+                }
+
+            }
+            return true;
+
+        } else {
+
+            if (getOAScore(candidate) < 100000) {
+                return true;
+            } else {
+                return false;
+            }
         }
+
+
+
+
 
 
         /*if (getFrequency(candidate) > 0.01) {
@@ -215,6 +312,24 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
         } else {
             return true;
         }*/
+    }
+
+    public double getConfidence(Rule r){
+        ByteString[] head = r.getHead();
+        ByteString countVariable = head[0];
+
+
+        long support = kb.countDistinct(countVariable, r.getTriples());
+        //System.out.println("Class Support: "+ support);
+
+        Set<ByteString> kbClass = kb.resultsOneVariable(r.getHead());
+        double classSize = kbClass.size();
+        //ByteString[] query = KB.triple(ByteString.of("?x"), concept, r.getHead()[2]);
+        //double classSize = kb.count(query);
+        //System.out.println("Class size: " + classSize);
+
+        //System.out.println("Class confidence: " + (support/classSize));
+        return support/classSize;
     }
 
     @Override
@@ -307,14 +422,23 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
     public void setClassConfidence(Rule r){
 
+
         ByteString[] head = r.getHead();
-        ByteString countVariable = null;
-        countVariable = head[0];
+        ByteString countVariable = head[0];
+
+
+
+
+
+
         long support = kb.countDistinct(countVariable, r.getTriples());
         //System.out.println("Class Support: "+ support);
 
-        ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of("?y"));
-        double classSize = kb.count(query);
+        Set<ByteString> kbClass = kb.resultsOneVariable(r.getHead());
+        double classSize = kbClass.size();
+
+        //ByteString[] query = KB.triple(ByteString.of("?x"), concept, r.getHead()[2]);
+        //double classSize = kb.count(query);
         //System.out.println("Class size: " + classSize);
 
         //System.out.println("Class confidence: " + (support/classSize));
@@ -343,20 +467,64 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
         */
     }
 
+    public double getConfidenceRatio(Rule r, Set<ByteString> difference, Set<ByteString> intersection, Set<ByteString> allEntities){
+
+
+        double diffCount = 0.0;
+
+        for (ByteString entity : allEntities){
+            if (difference.contains(entity)){
+                diffCount++;
+            }
+        }
+        //System.out.println("difference: "+difference);
+        //System.out.println("intersection: "+intersection);
+        //System.out.println("allEntities: "+allEntities);
+        //System.out.println("diffCount: "+diffCount);
+
+        double diffConf = diffCount/difference.size();
+
+
+        double intersectCount = 0.0;
+        for (ByteString entity : allEntities){
+            if (intersection.contains(entity)){
+                intersectCount++;
+            }
+        }
+        //System.out.println("intersectCount: "+intersectCount);
+        double intersectConf = intersectCount/intersection.size();
+
+        return diffConf/intersectConf;
+
+    }
+
     @Override
     public void calculateConfidenceMetrics(Rule r){
         setClassConfidence(r);
     }
 
     public double getOAScore(Rule r){
-
+        System.out.println(("Checking rule: "+r.toString()));
         List<ByteString[]> body = r.getBody();
         ByteString[] head = r.getHead();
         //List<ByteString[]> headList = new ArrayList<>();
         //System.out.println(fact.get(0)[0]);
         //System.out.println(head[0]);
 
-        int relId = getId(body.get(0)[1]);
+        //int relId = Integer.parseInt(body.get(0)[1].toString());
+        int relId = embedding.getRelationId(body.get(0)[1]);
+
+        if (relId < 0){
+            return 999999;
+        }
+
+        IntHashMap<ByteString> subjects = kb.resultsOneVariable(head);
+
+        double totalSize = subjects.size();
+
+        double scoreSum = 0.0;
+
+        double oaScore = 0.0;
 
         for (int varPos = 0; varPos <= 2; varPos += 2){
 
@@ -364,25 +532,29 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 continue;
             }
 
-            IntHashMap<ByteString> subjects = kb.resultsOneVariable(head);
-
-            double totalSize = subjects.size();
-
-            double scoreSum = 0.0;
-
-
 
             for (ByteString subject: subjects) {
-                int subjId = getId(subject);
+                //int subjId = Integer.parseInt(subject.toString());
+                int subjId = embedding.getEntityId(subject);
+
+                if (subjId < 0){
+                    continue;
+                }
 
                 double maxScore = 0.0;
                 double currentScore;
  
-                for (ByteString object: kb.getAllEntities()){
+                //for (ByteString object: kb.getAllEntities()){
+                for (int i = 0; i <= 1000; i++){
 
-                    int objId = getId(object);
-
+                    //int objId = Integer.parseInt(object.toString());
+                    //int objId = embedding.getEntityId(object);
+                    int objId = ThreadLocalRandom.current().nextInt(0, 1692796);
+                    if (objId < 0 || objId > 1692795){
+                        continue;
+                    }
                     if (varPos == 0){
+                        //System.out.println("subject: "+subject.toString()+"\trelation: "+body.get(0)[1].toString()+"\tobject: "+object.toString()+"\nsubj: "+subjId+"\trel: "+relId+"\tobj: "+objId);
                         currentScore = embedding.getScore(subjId, relId, objId);
                         if (maxScore < currentScore){
                             maxScore = currentScore;
@@ -398,24 +570,103 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
             }
 
-            System.out.println(subjects);
+            //System.out.println(subjects);
 
 
-            return (scoreSum/totalSize);
+            oaScore = (scoreSum/totalSize);
 
+        }
+        System.out.println("Rule: "+r.toString()+"\tOAScore: "+oaScore);
+        r.setOAScore(oaScore);
+        return oaScore;
+    }
+
+    public Set<ByteString> getClassDiff(ByteString mainClass, ByteString otherClass){
+
+        List<ByteString[]> queryMainClass = new ArrayList<>();
+        ByteString[] queryMain = KB.triple(ByteString.of("?x"), concept, mainClass);
+        queryMainClass.add(queryMain);
+        Set<ByteString> entitiesMain = kb.resultsOneVariable(queryMain);
+        Set<ByteString> resultingSet = new HashSet<>(entitiesMain);
+
+        List<ByteString[]> queryOtherClass = new ArrayList<>();
+        ByteString[] queryOther = KB.triple(ByteString.of("?y"), concept, otherClass);
+        queryOtherClass.add(queryMain);
+        Set<ByteString> entitiesOther = kb.resultsOneVariable(queryOther);
+
+
+
+        for (ByteString entity : entitiesMain){
+            if (entitiesOther.contains(entity)){
+                resultingSet.remove(entity);
+            }
         }
 
 
-
-
-        //double embeddingScore = embedding.getScore(0,0,0);
-
-
-        return 0.0;
+        return resultingSet;
     }
 
-    public int getId(ByteString entity){
-        //datei mit entity und id
-        return 0;
+    public double getClassDiffCount(ByteString mainClass, ByteString otherClass){return getClassDiff(mainClass ,otherClass).size();}
+
+    public Set<ByteString> getClassIntersect(ByteString mainClass, ByteString otherClass){
+
+        List<ByteString[]> queryMainClass = new ArrayList<>();
+        ByteString[] queryMain = KB.triple(ByteString.of("?x"), concept, mainClass);
+        queryMainClass.add(queryMain);
+        Set<ByteString> entitiesMain = kb.resultsOneVariable(queryMain);
+        Set<ByteString> resultingSet = new HashSet<>();
+
+
+        List<ByteString[]> queryOtherClass = new ArrayList<>();
+        ByteString[] queryOther = KB.triple(ByteString.of("?y"), concept, otherClass);
+        queryOtherClass.add(queryMain);
+        Set<ByteString> entitiesOther = kb.resultsOneVariable(queryOther);
+
+
+        for (ByteString entity : entitiesMain){
+            if (entitiesOther.contains(entity)){
+                resultingSet.add(entity);
+            }
+        }
+
+
+        return resultingSet;
     }
+
+    public double getClassIntersectCount(ByteString mainClass, ByteString otherClass){return getClassIntersect(mainClass ,otherClass).size();}
+
+    public Set<ByteString> getAttributeIntersect(Set<ByteString> classIntersection, Rule r){
+
+        Set<ByteString> resultingSet = new HashSet<>();
+
+        if (r.getTriples().get(0)[0].equals(r.getTriples().get(1)[0])){
+
+            Set<ByteString> entities = kb.frequentBindingsOf(r.getTriples().get(1)[0],r.getTriples().get(1)[2],r.getBody());
+
+            for (ByteString entity : classIntersection){
+                if (entities.contains(entity)){
+                    resultingSet.add(entity);
+                }
+            }
+
+            return resultingSet;
+
+        } else {
+
+            Set<ByteString> entities = kb.frequentBindingsOf(r.getTriples().get(1)[2],r.getTriples().get(1)[0],r.getBody());
+
+            for (ByteString entity : classIntersection){
+                if (entities.contains(entity)){
+                    resultingSet.add(entity);
+                }
+            }
+
+            return resultingSet;
+
+        }
+
+    }
+
+    public double getAttributeIntersectCount(Set<ByteString> classIntersection, Rule r){return getAttributeIntersect(classIntersection, r).size();}
+
 }
