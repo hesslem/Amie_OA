@@ -464,7 +464,7 @@ public class AMIE {
                     // Check if the rule meets the language bias and confidence thresholds and
                     // decide whether to output it.
                     boolean outputRule = false;
-                    System.out.println("Derzeitige Regel: " + currentRule +"Rule length: "+currentRule.getRealLength());
+                    //System.out.println("Derzeitige Regel: " + currentRule +"Rule length: "+currentRule.getRealLength());
                     if(currentRule.getRealLength() == assistant.getMaxDepth()){
 
                         assistant.calculateConfidenceMetrics(currentRule);
@@ -510,7 +510,7 @@ public class AMIE {
                         // Application of the mining operators
                         //assistant.getClosingAtoms(currentRule, threshold, temporalOutput);
                         //System.out.println("got closing atoms");
-                        assistant.getDanglingAtoms(currentRule, threshold, temporalOutput);
+                        assistant.getDanglingAtoms(currentRule, 0, temporalOutput);
                         //System.out.println("got dangling");
                         //assistant.getInstantiatedAtoms(currentRule, threshold, temporalOutputDanglingEdges, temporalOutput);
                         //System.out.println("Applied mining operators: "+temporalOutputDanglingEdges+"\n"+currentRule.toString());

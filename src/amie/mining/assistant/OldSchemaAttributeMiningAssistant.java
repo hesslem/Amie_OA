@@ -155,7 +155,8 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                     rule.getTriples().get(0)[0], rule.getTriples());
 
 
-            //System.out.println(promisingRelations);
+
+            //System.out.println("Promising relations for class "+rule.getHead()[1].toString()+": "+promisingRelations);
             rule.getTriples().remove(nPatterns);
 
             int danglingPosition = (joinPosition == 0 ? 2 : 0);
@@ -504,7 +505,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
     }
 
     public double getOAScore(Rule r){
-        System.out.println(("Checking rule: "+r.toString()));
+        //System.out.println(("Checking rule: "+r.toString()));
         List<ByteString[]> body = r.getBody();
         ByteString[] head = r.getHead();
         //List<ByteString[]> headList = new ArrayList<>();
@@ -576,7 +577,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
             oaScore = (scoreSum/totalSize);
 
         }
-        System.out.println("Rule: "+r.toString()+"\tOAScore: "+oaScore);
+        //System.out.println("Rule: "+r.toString()+"\tOAScore: "+oaScore);
         r.setOAScore(oaScore);
         return oaScore;
     }
