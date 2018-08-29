@@ -1,8 +1,13 @@
 package amie.embedding;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -21,6 +26,7 @@ public class HolEClient extends EmbeddingClient {
         super(workspace);
         LOGGER.info("Loading embedding HolE client from '" + workspace + ".");
 
+        /*
         try {
             // Read embeddings.
             DataInputStream eIn = new DataInputStream(new FileInputStream(
@@ -59,6 +65,43 @@ public class HolEClient extends EmbeddingClient {
                 FFTBase.fft(fftEntitiesEmbeddingReal[i], fftEntitiesEmbeddingImag[i], true);
             }
             LOGGER.info("FFT Optimization Enabled");
+        }*/
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject;
+        try{
+            jsonObject = (JSONObject) parser.parse(new FileReader("/home/kalo/notebooks/OpenKE/hessler/HolE.json"));
+            System.out.println("Embedding eingelesen");
+            this.eLength = 200;
+            System.out.println("eLength: "+eLength);
+            JSONArray entityArray = (JSONArray) jsonObject.get("ent_embeddings");
+            System.out.println("No entities: "+entityArray.size());
+            entitiesEmbedding = new DoubleVector[nEntities];
+
+            for (int i = 0; i < nEntities; ++i) {
+                entitiesEmbedding[i] = new DoubleVector(eLength);
+                JSONArray vector = (JSONArray) entityArray.get(i);
+                for (int j = 0; j < eLength; ++j) {
+                    entitiesEmbedding[i].value[j] = Double.parseDouble(vector.get(j).toString());
+                }
+            }
+            System.out.println("Saved entities");
+
+            JSONArray relationArray = (JSONArray) jsonObject.get("rel_embeddings");
+
+            relationsEmbedding = new DoubleVector[nRelations];
+
+            for (int i = 0; i < nRelations; ++i) {
+                relationsEmbedding[i] = new DoubleVector(eLength);
+                JSONArray vector = (JSONArray) relationArray.get(i);
+                for (int j = 0; j < eLength; ++j) {
+                    relationsEmbedding[i].value[j] = Double.parseDouble(vector.get(j).toString());
+                }
+            }
+            System.out.println("Saved relations");
+
+
+        } catch (Exception e){
+            System.out.println("Error: "+e);
         }
     }
 

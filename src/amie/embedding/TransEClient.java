@@ -66,9 +66,9 @@ public class TransEClient extends EmbeddingClient {
         JSONParser parser = new JSONParser();
         JSONObject jsonObject;
         try{
-            jsonObject = (JSONObject) parser.parse(new FileReader("/home/kalo/notebooks/OpenKE/embedding.vec.json"));
+            jsonObject = (JSONObject) parser.parse(new FileReader("/home/kalo/notebooks/OpenKE/hessler/transe.vec.json"));
             System.out.println("Embedding eingelesen");
-            eLength = 100;
+            this.eLength = 200;
             System.out.println("eLength: "+eLength);
             JSONArray entityArray = (JSONArray) jsonObject.get("ent_embeddings");
             System.out.println("No entities: "+entityArray.size());
@@ -113,7 +113,7 @@ public class TransEClient extends EmbeddingClient {
                 score += Math.abs(entitiesEmbedding[subject].value[i] + relationsEmbedding[predicate].value[i] -
                         entitiesEmbedding[object].value[i]);
             }
-            return score;
+            return score/100;
         } else {
 
             for (int i = 0; i < eLength; ++i) {
@@ -121,7 +121,7 @@ public class TransEClient extends EmbeddingClient {
                 score += Math.pow((entitiesEmbedding[subject].value[i] + relationsEmbedding[predicate].value[i] -
                         entitiesEmbedding[object].value[i]),2);
             }
-            return Math.sqrt(score);
+            return Math.sqrt(score)/10;
 
         }
 

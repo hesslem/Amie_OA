@@ -399,7 +399,7 @@ public class KB {
 		long size = size();
 		long time = System.currentTimeMillis();
 		long memory = Runtime.getRuntime().freeMemory();
-		Announce.doing("Loading files");
+		//Announce.doing("Loading files");
 		final int[] running = new int[1];
 		for (final File file : files) {
 			running[0]++;
@@ -407,15 +407,15 @@ public class KB {
 				public void run() {
 					try {
 						synchronized (Announce.blanks) {
-							Announce.message("Starting " + file.getName());
+							//Announce.message("Starting " + file.getName());
 						}
 						load(file, null);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 					synchronized (Announce.blanks) {
-						Announce.message("Finished " + file.getName()
-								+ ", still running: " + (running[0] - 1));
+						//Announce.message("Finished " + file.getName()
+								//+ ", still running: " + (running[0] - 1));
 						synchronized (running) {
 							if (--running[0] == 0) {
 								running.notify();
@@ -434,11 +434,11 @@ public class KB {
 			e.printStackTrace();
 		}
 		
-		Announce.done("Loaded " + (size() - size) + " facts in "
+		/*Announce.done("Loaded " + (size() - size) + " facts in "
 				+ NumberFormatter.formatMS(System.currentTimeMillis() - time)
 				+ " using "
 				+ ((Runtime.getRuntime().freeMemory() - memory) / 1000000)
-				+ " MB");
+				+ " MB");*/
 	}
 	
 	/**
@@ -464,7 +464,7 @@ public class KB {
 		for (String line : new FileLines(f, "UTF-8", message)) {
 			if (line.endsWith("."))
 				line = Char17.cutLast(line);
-			String[] split = line.split("\t");
+			String[] split = line.split("\\s+");
 			if (split.length == 3)
 				add(split[0].trim(), split[1].trim(), split[2].trim());
 			else if (split.length == 4)
@@ -3170,14 +3170,14 @@ public class KB {
         IntHashMap<ByteString> allClasses = new IntHashMap<ByteString>();
 
         for (ByteString entity : this.allEntities){
-            Set<ByteString> classes = resultsOneVariable(entity, ByteString.of("wdt:P106"), ByteString.of("?y"));
+            Set<ByteString> classes = resultsOneVariable(entity, ByteString.of("<http://www.wikidata.org/prop/direct/P106>"), ByteString.of("?y"));
             for (ByteString typeClass : classes){
                 if (!(allClasses.contains(typeClass))){
                     allClasses.add(typeClass);
                 }
             }
         }
-		System.out.println(allClasses);
+		//System.out.println(allClasses);
         this.allClasses = allClasses;
     }
 

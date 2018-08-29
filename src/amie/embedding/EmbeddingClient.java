@@ -25,14 +25,14 @@ public abstract class EmbeddingClient {
     protected int nEntities, nRelations, eLength;
     protected FactEncodedSetPerPredicate[] trueFacts;
     protected ConcurrentHashMap<Long, Double>[] cachedRankQueries;
-    protected IntHashMap<ByteString> entity2id = new IntHashMap<>();
-    protected IntHashMap<ByteString> relation2id = new IntHashMap<>();
+    public IntHashMap<ByteString> entity2id = new IntHashMap<>();
+    public IntHashMap<ByteString> relation2id = new IntHashMap<>();
 
     public EmbeddingClient(String workspace) {
         try {
             // Read nEntities, nRelations, eLength.
-            BufferedReader entityIn = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/kalo/notebooks/entity2id.txt"))));
-            BufferedReader relationIn = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/kalo/notebooks/relation2id.txt"))));
+            BufferedReader entityIn = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/kalo/notebooks/OpenKE/hessler/entity2id.txt"))));
+            BufferedReader relationIn = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/kalo/notebooks/OpenKE/hessler/relation2id.txt"))));
             String[] arr = entityIn.readLine().split("\\s++");
             nEntities = Integer.parseInt(arr[0]);
             System.out.println("Entities: "+nEntities);
@@ -45,12 +45,12 @@ public abstract class EmbeddingClient {
                 if(row[1].equals("Point(2.9")){
                     continue;
                 }
-                this.entity2id.add(ByteString.of(row[0]), Integer.parseInt(row[1]));
+                this.entity2id.add(ByteString.of(row[1]), Integer.parseInt(row[0]));
             }
             System.out.println("Done entities");
             for (int i = 0; i < nRelations; ++i) {
                 String[] row = relationIn.readLine().split("\\s++");
-                this.relation2id.add(ByteString.of(row[0]), Integer.parseInt(row[1]));
+                this.relation2id.add(ByteString.of(row[1]), Integer.parseInt(row[0]));
             }
             System.out.println("Done relations");
             entityIn.close();

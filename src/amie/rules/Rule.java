@@ -182,6 +182,19 @@ public class Rule {
 
     protected double OAScore;
 
+    protected double hybridScore0;
+    protected double hybridScore1;
+    protected double hybridScore2;
+    protected double hybridScore3;
+    protected double hybridScore4;
+    protected double hybridScore5;
+    protected double hybridScore6;
+    protected double hybridScore7;
+    protected double hybridScore8;
+    protected double hybridScore9;
+    protected double hybridScore10;
+
+
     /**
      * It puts the arguments in an array.
      *
@@ -1038,6 +1051,85 @@ public class Rule {
         return this.OAScore;
     }
 
+    public void setHybridScore(double hybridScore, int i){
+        if (i == 0){
+
+            this.hybridScore0 = hybridScore;
+        } else if (i == 1){
+
+            this.hybridScore1 = hybridScore;
+        } else if (i == 2){
+
+            this.hybridScore2 = hybridScore;
+        } else if (i == 3){
+
+            this.hybridScore3 = hybridScore;
+        } else if (i == 4){
+
+            this.hybridScore4 = hybridScore;
+        } else if (i == 5){
+
+            this.hybridScore5 = hybridScore;
+        } else if (i == 6){
+
+            this.hybridScore6 = hybridScore;
+        } else if (i == 7){
+
+            this.hybridScore7 = hybridScore;
+        } else if (i == 8){
+
+            this.hybridScore8 = hybridScore;
+        } else if (i == 9){
+
+            this.hybridScore9 = hybridScore;
+        } else if (i == 10){
+
+            this.hybridScore10 = hybridScore;
+        }
+
+
+
+    }
+
+    public double getHybridScore(int i){
+
+        if (i == 0){
+
+            return this.hybridScore0;
+        } else if (i == 1){
+
+            return this.hybridScore1;
+        } else if (i == 2){
+
+            return this.hybridScore2;
+        } else if (i == 3){
+
+            return this.hybridScore3;
+        } else if (i == 4){
+
+            return this.hybridScore4;
+        } else if (i == 5){
+
+            return this.hybridScore5;
+        } else if (i == 6){
+
+            return this.hybridScore6;
+        } else if (i == 7){
+
+            return this.hybridScore7;
+        } else if (i == 8){
+
+            return this.hybridScore8;
+        } else if (i == 9){
+
+            return this.hybridScore9;
+        } else {
+
+            return this.hybridScore10;
+        }
+
+    }
+
     /**
      * Return a key for the rule based on the constant arguments of the head
      * atom. It can be used as a hash key.
@@ -1258,8 +1350,8 @@ public class Rule {
                 + "PCA Confidence\tPositive Examples\tBody size\tPCA Body size\t"
                 + "Functional variable\tStd. Lower Bound\tPCA Lower Bound\t"
                 + "PCA Conf estimation");*/
-        //System.out.println("Rule\tClass Confidence");
-        System.out.println("Rule\tOA Score");
+        //System.out.println("Rule\tClass Confidence\tOA Score");
+        //System.out.println("Rule\tOA Score");
     }
 
     public String getRuleString() {
@@ -1283,25 +1375,19 @@ public class Rule {
         TreeSet<ByteString[]> sortedBody = new TreeSet<ByteString[]>(new TripleComparator());
         sortedBody.addAll(getAntecedent());
         StringBuilder strBuilder = new StringBuilder();
+
+
+
+        ByteString[] head = triples.get(0);
+        strBuilder.append(head[2]);
+        strBuilder.append(" => ");
+
         for (ByteString[] pattern : sortedBody) {
             if (pattern[1].equals(KB.DIFFERENTFROMbs)) {
                 continue;
             }
-            strBuilder.append(pattern[0]);
-            strBuilder.append("  ");
             strBuilder.append(pattern[1]);
-            strBuilder.append("  ");
-            strBuilder.append(pattern[2]);
-            strBuilder.append("  ");
         }
-
-        strBuilder.append(" => ");
-        ByteString[] head = triples.get(0);
-        strBuilder.append(head[0]);
-        strBuilder.append("  ");
-        strBuilder.append(head[1]);
-        strBuilder.append("  ");
-        strBuilder.append(head[2]);
 
         return strBuilder.toString();
     }
@@ -1324,9 +1410,14 @@ public class Rule {
         strBuilder.append("\t" + _pcaConfidenceUpperBound);
         strBuilder.append("\t" + _pcaConfidenceEstimation);
         */
-        //strBuilder.append("\t" + getClassConfidence());
+        strBuilder.append("\t" + getClassConfidence());
 
         strBuilder.append("\t" + getOAScore());
+
+        for (int i = 0; i <= 10; i++){
+            strBuilder.append("\t" + getHybridScore(i));
+        }
+
 
         return strBuilder.toString();
     }

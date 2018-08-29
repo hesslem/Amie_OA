@@ -1229,4 +1229,12 @@ public class MiningAssistant{
 	public void setConfidenceMetric(ConfidenceMetric confidenceMetric) {
 		this.confidenceMetric = confidenceMetric;
 	}
+
+    public boolean testConfidenceThresholds(Rule candidate, int threshold) {
+	    return true;
+    }
+
+    public void evaluate(){
+
+	}
 }

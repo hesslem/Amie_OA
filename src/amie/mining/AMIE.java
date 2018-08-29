@@ -42,6 +42,9 @@ import amie.mining.assistant.RelationSignatureDefaultMiningAssistant;
 import amie.rules.QueryEquivalenceChecker;
 import amie.rules.Rule;
 
+import java.util.logging.Logger;
+
+
 /**
  * Main class that implements the AMIE algorithm for rule mining 
  * on ontologies. The ontology must be provided as a list of TSV files
@@ -51,6 +54,8 @@ import amie.rules.Rule;
  *
  */
 public class AMIE {
+
+    public static final Logger LOGGER = Logger.getLogger(AMIE.class.getName());
 
     /**
      * Default PCA confidence threshold
@@ -240,6 +245,12 @@ public class AMIE {
      * @throws Exception
      */
     public List<Rule> mine() throws Exception {
+
+
+        assistant.evaluate();
+
+
+
         List<Rule> result = new ArrayList<>();
         MultiMap<Integer, Rule> indexedResult = new MultiMap<>();
         RuleConsumer consumerObj = null;
@@ -254,7 +265,7 @@ public class AMIE {
             assistant.getInitialAtoms(minInitialSupport, seedsPool);
         } else {
             seeds = new ArrayList<>();
-            seeds.add(ByteString.of("wdt:P106"));
+            seeds.add(ByteString.of("<http://www.wikidata.org/prop/direct/P106>"));
             assistant.getInitialAtomsFromSeeds(seeds, minInitialSupport, seedsPool);
         }
 
@@ -264,7 +275,7 @@ public class AMIE {
             consumerThread.start();
         }
 
-        System.out.println("Using " + nThreads + " threads");
+        //System.out.println("Using " + nThreads + " threads");
         //Create as many threads as available cores
         ArrayList<Thread> currentJobs = new ArrayList<>();
         ArrayList<RDFMinerJob> jobObjects = new ArrayList<>();
@@ -463,12 +474,27 @@ public class AMIE {
 
                     // Check if the rule meets the language bias and confidence thresholds and
                     // decide whether to output it.
+                    /*boolean outputRuleth1 = false;
+                    boolean outputRuleth2 = false;
+                    boolean outputRuleth3 = false;
+                    boolean outputRuleth4 = false;
+                    boolean outputRuleth5 = false;
+                    boolean outputRuleth6 = false;*/
+
                     boolean outputRule = false;
+
                     //System.out.println("Derzeitige Regel: " + currentRule +"Rule length: "+currentRule.getRealLength());
                     if(currentRule.getRealLength() == assistant.getMaxDepth()){
 
-                        assistant.calculateConfidenceMetrics(currentRule);
+                        //assistant.calculateConfidenceMetrics(currentRule);
                         outputRule = assistant.testConfidenceThresholds(currentRule);
+                        /*
+                        outputRuleth1 = assistant.testConfidenceThresholds(currentRule, 100);
+                        outputRuleth2 = assistant.testConfidenceThresholds(currentRule, 150);
+                        outputRuleth3 = assistant.testConfidenceThresholds(currentRule, 200);
+                        outputRuleth4 = assistant.testConfidenceThresholds(currentRule, 250);
+                        outputRuleth5 = assistant.testConfidenceThresholds(currentRule, 300);
+                        outputRuleth6 = assistant.testConfidenceThresholds(currentRule, 350);*/
                     }
 
                     /*if (true) {
@@ -535,6 +561,48 @@ public class AMIE {
 
                     // Output the rule
                     if (outputRule) {
+                        //System.out.println("Outputting Rule: "+currentRule.toString());
+                        this.resultsLock.lock();
+                        long timeStamp1 = System.currentTimeMillis();
+                        Set<Rule> outputQueries = indexedOutputSet.get(currentRule.alternativeParentHashCode());
+                        if (outputQueries != null) {
+                            if (!outputQueries.contains(currentRule)) {
+                                this.outputSet.add(currentRule);
+                                outputQueries.add(currentRule);
+
+                            }
+                        } else {
+                            this.outputSet.add(currentRule);
+                            this.indexedOutputSet.put(currentRule.alternativeParentHashCode(), currentRule);
+                        }
+                        long timeStamp2 = System.currentTimeMillis();
+                        this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
+                        this.resultsCondition.signal();
+                        this.resultsLock.unlock();
+
+                    }/*
+                    if (outputRuleth1) {
+                        this.resultsLock.lock();
+                        long timeStamp1 = System.currentTimeMillis();
+                        Set<Rule> outputQueries = indexedOutputSet.get(currentRule.alternativeParentHashCode());
+                        if (outputQueries != null) {
+                            if (!outputQueries.contains(currentRule)) {
+
+                                outputQueries.add(currentRule);
+                                ByteString[] thEdge = new ByteString[] {ByteString.of(" "), ByteString.of("100"), ByteString.of(" ")};
+                                currentRule.addAtom(thEdge, 0);
+                                this.outputSet.add(currentRule);
+                            }
+                        } else {
+                            this.outputSet.add(currentRule);
+                            this.indexedOutputSet.put(currentRule.alternativeParentHashCode(), currentRule);
+                        }
+                        long timeStamp2 = System.currentTimeMillis();
+                        this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
+                        this.resultsCondition.signal();
+                        this.resultsLock.unlock();
+
+                    } else if (outputRuleth2) {
                         this.resultsLock.lock();
                         long timeStamp1 = System.currentTimeMillis();
                         Set<Rule> outputQueries = indexedOutputSet.get(currentRule.alternativeParentHashCode());
@@ -551,7 +619,79 @@ public class AMIE {
                         this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
                         this.resultsCondition.signal();
                         this.resultsLock.unlock();
-                    }
+
+                    } else if (outputRuleth3) {
+                        this.resultsLock.lock();
+                        long timeStamp1 = System.currentTimeMillis();
+                        Set<Rule> outputQueries = indexedOutputSet.get(currentRule.alternativeParentHashCode());
+                        if (outputQueries != null) {
+                            if (!outputQueries.contains(currentRule)) {
+                                this.outputSet.add(currentRule);
+                                outputQueries.add(currentRule);
+                            }
+                        } else {
+                            this.outputSet.add(currentRule);
+                            this.indexedOutputSet.put(currentRule.alternativeParentHashCode(), currentRule);
+                        }
+                        long timeStamp2 = System.currentTimeMillis();
+                        this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
+                        this.resultsCondition.signal();
+                        this.resultsLock.unlock();
+
+                    } else if (outputRuleth4) {
+                        this.resultsLock.lock();
+                        long timeStamp1 = System.currentTimeMillis();
+                        Set<Rule> outputQueries = indexedOutputSet.get(currentRule.alternativeParentHashCode());
+                        if (outputQueries != null) {
+                            if (!outputQueries.contains(currentRule)) {
+                                this.outputSet.add(currentRule);
+                                outputQueries.add(currentRule);
+                            }
+                        } else {
+                            this.outputSet.add(currentRule);
+                            this.indexedOutputSet.put(currentRule.alternativeParentHashCode(), currentRule);
+                        }
+                        long timeStamp2 = System.currentTimeMillis();
+                        this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
+                        this.resultsCondition.signal();
+                        this.resultsLock.unlock();
+
+                    } else if (outputRuleth5) {
+                        this.resultsLock.lock();
+                        long timeStamp1 = System.currentTimeMillis();
+                        Set<Rule> outputQueries = indexedOutputSet.get(currentRule.alternativeParentHashCode());
+                        if (outputQueries != null) {
+                            if (!outputQueries.contains(currentRule)) {
+                                this.outputSet.add(currentRule);
+                                outputQueries.add(currentRule);
+                            }
+                        } else {
+                            this.outputSet.add(currentRule);
+                            this.indexedOutputSet.put(currentRule.alternativeParentHashCode(), currentRule);
+                        }
+                        long timeStamp2 = System.currentTimeMillis();
+                        this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
+                        this.resultsCondition.signal();
+                        this.resultsLock.unlock();
+
+                    } else if (outputRuleth6) {
+                        this.resultsLock.lock();
+                        long timeStamp1 = System.currentTimeMillis();
+                        Set<Rule> outputQueries = indexedOutputSet.get(currentRule.alternativeParentHashCode());
+                        if (outputQueries != null) {
+                            if (!outputQueries.contains(currentRule)) {
+                                this.outputSet.add(currentRule);
+                                outputQueries.add(currentRule);
+                            }
+                        } else {
+                            this.outputSet.add(currentRule);
+                            this.indexedOutputSet.put(currentRule.alternativeParentHashCode(), currentRule);
+                        }
+                        long timeStamp2 = System.currentTimeMillis();
+                        this._queueingAndDuplicateElimination += (timeStamp2 - timeStamp1);
+                        this.resultsCondition.signal();
+                        this.resultsLock.unlock();
+                    }*/
                 } else {
                     if (!this.idle) {
                         this.idle = true;
@@ -1197,7 +1337,7 @@ public class AMIE {
                     break;
             }
         } else {
-            System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minHeadCover);
+            //System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minHeadCover);
             minMetricValue = minHeadCover;
         }
 
@@ -1217,7 +1357,7 @@ public class AMIE {
                 System.exit(1);
             }
         }
-        System.out.println("Using recursivity limit " + recursivityLimit);
+        //System.out.println("Using recursivity limit " + recursivityLimit);
 
         enableConfidenceUpperBounds = cli.hasOption("optimcb");
         if (enableConfidenceUpperBounds) {
@@ -1236,8 +1376,8 @@ public class AMIE {
         		mineAssistant = new MiningAssistant(dataSource);
         		break;
             case "default" :
-                //mineAssistant = new DefaultMiningAssistant(dataSource);
-                mineAssistant = new OldSchemaAttributeMiningAssistant(dataSource, "wdt:P106", true);
+                //mineAssistant = new DefaultMiningAss istant(dataSource);
+                mineAssistant = new OldSchemaAttributeMiningAssistant(dataSource, "<http://www.wikidata.org/prop/direct/P106>", true, true, 0, 0.6);
                 break;
             case "signatured" :
             	mineAssistant = new RelationSignatureDefaultMiningAssistant(dataSource);
@@ -1331,7 +1471,7 @@ public class AMIE {
         //mineAssistant.setEnablePerfectRules(enablePerfectRulesPruning);
         mineAssistant.setVerbose(verbose);
 
-        System.out.println(mineAssistant.getDescription());
+        //System.out.println(mineAssistant.getDescription());
         
         AMIE miner = new AMIE(mineAssistant, minInitialSup, minMetricValue, metric, nThreads);
         miner.setRealTime(realTime);
@@ -1341,11 +1481,11 @@ public class AMIE {
         if (minStdConf > 0.0) {
             System.out.println("Filtering on standard confidence with minimum threshold " + minStdConf);
         } else {
-            System.out.println("No minimum threshold on standard confidence");
+            //System.out.println("No minimum threshold on standard confidence");
         }
 
         if (minPCAConf > 0.0) {
-            System.out.println("Filtering on PCA confidence with minimum threshold " + minPCAConf);
+            //System.out.println("Filtering on PCA confidence with minimum threshold " + minPCAConf);
         } else {
             System.out.println("No minimum threshold on PCA confidence");
         }
@@ -1355,11 +1495,11 @@ public class AMIE {
         } else if (allowConstants) {
             System.out.println("Constants in the arguments of relations are enabled");
         } else {
-            System.out.println("Constants in the arguments of relations are disabled");
+            //System.out.println("Constants in the arguments of relations are disabled");
         }
 
         if (exploitMaxLengthForRuntime && enableQueryRewriting && enablePerfectRulesPruning) {
-            System.out.println("Lossless (query refinement) heuristics enabled");
+            //System.out.println("Lossless (query refinement) heuristics enabled");
         } else {
             if (!exploitMaxLengthForRuntime) {
                 System.out.println("Pruning by maximum rule length disabled");
@@ -1385,7 +1525,9 @@ public class AMIE {
     public static void main(String[] args) throws Exception {
     	  AMIE miner = AMIE.getInstance(args);
 
-          Announce.doing("Starting the mining phase");
+          Announce.doing("Starting the mining phase\n");
+
+
 
           long time = System.currentTimeMillis();
           List<Rule> rules = null;
