@@ -69,7 +69,7 @@ public class HolEClient extends EmbeddingClient {
         JSONParser parser = new JSONParser();
         JSONObject jsonObject;
         try{
-            jsonObject = (JSONObject) parser.parse(new FileReader("/home/kalo/notebooks/OpenKE/hessler/HolE.json"));
+            jsonObject = (JSONObject) parser.parse(new FileReader("/home/kalo/notebooks/OpenKE/hessler/hole2.json"));
             System.out.println("Embedding eingelesen");
             this.eLength = 200;
             System.out.println("eLength: "+eLength);

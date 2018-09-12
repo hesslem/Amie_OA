@@ -1234,7 +1234,7 @@ public class MiningAssistant{
 	    return true;
     }
 
-    public void evaluate(){
+    public void evaluate(String model){
 
 	}
 }

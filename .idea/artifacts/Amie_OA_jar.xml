@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Amie_OA:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Amie_OA_jar</output-path>
+    <root id="archive" name="Amie_OA.jar">
+      <element id="module-output" name="Amie_OA" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/json-simple-1.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/commons-cli-1.2.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

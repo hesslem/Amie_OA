@@ -247,7 +247,7 @@ public class AMIE {
     public List<Rule> mine() throws Exception {
 
 
-        assistant.evaluate();
+        assistant.evaluate("TransE");
 
 
 

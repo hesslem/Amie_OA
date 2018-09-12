@@ -3,6 +3,7 @@ package amie.mining.assistant;
 import amie.data.KB;
 import amie.embedding.EmbeddingClient;
 import amie.embedding.HolEClient;
+import amie.embedding.TransHClient;
 import amie.mining.assistant.MiningAssistant;
 //import amie.mining.assistant.MiningOperator;
 import amie.rules.Rule;
@@ -170,12 +171,12 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
         int nPatterns = rule.getTriples().size();
         ByteString originalRelationVariable = newEdge[1];
 
-        for (int joinPosition = 0; joinPosition <= 2; joinPosition += 2) {
-            ByteString originalFreshVariable = newEdge[joinPosition];
+        //for (int joinPosition = 0; joinPosition <= 2; joinPosition += 2) {
+            ByteString originalFreshVariable = newEdge[0];
 
 
             //System.out.println("JOIN VARIABLES " + joinVariable);
-            newEdge[joinPosition] = joinVariable;
+            newEdge[0] = joinVariable;
             //newEdge[1] = ByteString.of("<testRelation>");
             rule.getTriples().add(newEdge);
             //System.out.println("JOIN VARIABLE " + joinVariable);
@@ -192,7 +193,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
             //System.out.println("Promising relations for class "+rule.getHead()[1].toString()+": "+promisingRelations);
             rule.getTriples().remove(nPatterns);
 
-            int danglingPosition = (joinPosition == 0 ? 2 : 0);
+            //int danglingPosition = (joinPosition == 0 ? 2 : 0);
 
             //System.out.println("Promising relations: "+promisingRelations);
 
@@ -236,9 +237,9 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
                 newEdge[1] = originalRelationVariable;
             }
-            newEdge[joinPosition] = originalFreshVariable;
+            //newEdge[0] = originalFreshVariable;
 
-        }
+        //}
     }
 
     @Override
@@ -351,7 +352,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
         } else {
 
-            if (getOAScore(candidate) <= 50) {
+            if (getOAScore(candidate) > 0) {
                 return true;
             } else {
                 return false;
@@ -592,11 +593,11 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
         int counter = 0;
 
-        for (int varPos = 0; varPos <= 2; varPos += 2){
+        //for (int varPos = 0; varPos <= 2; varPos += 2){
 
-            if (!(head[0].equals(body.get(0)[varPos]))){
+            /*if (!(head[0].equals(body.get(0)[varPos]))){
                 continue;
-            }
+            }*/
 
 
             for (ByteString subject: subjects) {
@@ -609,9 +610,10 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
                 double maxScore = 0.0;
                 double currentScore;
+                double embeddingScoreSum = 0.0;
  
                 //for (ByteString object: kb.getAllEntities()){
-                for (int i = 0; i <= 1000; i++){
+                for (int i = 0; i <= 99; i++){
 
                     //int objId = Integer.parseInt(object.toString());
                     //int objId = embedding.getEntityId(object);
@@ -619,18 +621,19 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                     if (objId < 0 || objId > 2952465){
                         continue;
                     }
-                    if (varPos == 0){
+                    //if (varPos == 0){
                         //System.out.println("subject: "+subject.toString()+"\trelation: "+body.get(0)[1].toString()+"\tobject: "+object.toString()+"\nsubj: "+subjId+"\trel: "+relId+"\tobj: "+objId);
                         currentScore = embedding.getScore(subjId, relId, objId);
 
-                        if (i == 0){
+                        /*if (i == 0){
                             maxScore = currentScore;
                             continue;
                         }
                         if (maxScore > currentScore){
                             maxScore = currentScore;
-                        }
-                    } else {
+                        }*/
+                        embeddingScoreSum = embeddingScoreSum + currentScore;
+                    /*} else {
 
                         currentScore = embedding.getScore(objId, relId, subjId);
                         if (i == 0){
@@ -640,9 +643,12 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                         if (maxScore > currentScore){
                             maxScore = currentScore;
                         }
-                    }
+                        //embeddingScoreSum = embeddingScoreSum + currentScore;
+                    }*/
                 }
-                scoreSum = scoreSum + maxScore;
+                //scoreSum = scoreSum + maxScore;
+
+                scoreSum = scoreSum + (embeddingScoreSum/100);
 
             }
 
@@ -706,7 +712,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
             }*/
 
-        }
+        //}
         //System.out.println("Checked Rule: "+r.toString()+"\tOAScore: "+oaScore+"\tTotal Size: "+totalSize+"\tScore Sum: "+scoreSum);
         r.setOAScore(oaScore);
         return oaScore;
@@ -822,11 +828,11 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
         double oaScore = 0.0;
 
-        for (int varPos = 0; varPos <= 2; varPos += 2){
+        /*for (int varPos = 0; varPos <= 2; varPos += 2){
 
             if (!(head[0].equals(body.get(0)[varPos]))){
                 continue;
-            }
+            }*/
 
             for (ByteString subject: subjects) {
                 //int subjId = Integer.parseInt(subject.toString());
@@ -838,17 +844,19 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
                 double currentScore;
 
-                if (varPos == 0){
+                double embeddingScoreSum = 0.0;
+
+                //if (varPos == 0){
                     testingEdge[0] = subject;
                     if (kb.resultsOneVariable(testingEdge).size() > 1){
                         continue;
                     }
-                } else {
+                /*} else {
                     testingEdge[2] = subject;
                     if (kb.resultsOneVariable(testingEdge).size() > 1){
                         continue;
                     }
-                }
+                }*/
 
                 int subjId = embedding.getEntityId(subject);
 
@@ -859,7 +867,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 totalSize++;
 
                 //for (ByteString object : kb.getAllEntities()){
-                for (int i = 0; i <= 1000; i++){
+                for (int i = 0; i <= 99; i++){
 
                     int objId = ThreadLocalRandom.current().nextInt(0, 2952465);
                     if (objId < 0 || objId > 2952465){
@@ -871,7 +879,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                     //int objId = Integer.parseInt(object.toString());
                     //int objId = embedding.getEntityId(object);
 
-                    if (varPos == 0){
+                    //if (varPos == 0){
                         //System.out.println("subject: "+subject.toString()+"\trelation: "+body.get(0)[1].toString()+"\tobject: "+object.toString()+"\nsubj: "+subjId+"\trel: "+relId+"\tobj: "+objId);
                         currentScore = embedding.getScore(subjId, relId, objId);
 
@@ -882,7 +890,8 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                         if (maxScore > currentScore){
                             maxScore = currentScore;
                         }
-                    } else {
+                        //embeddingScoreSum = embeddingScoreSum + currentScore;
+                    /*} else {
 
                         currentScore = embedding.getScore(objId, relId, subjId);
                         if (i == 0){
@@ -892,39 +901,44 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                         if (maxScore > currentScore){
                             maxScore = currentScore;
                         }
-                    }
+                    }*/
                 }
                 scoreSum = scoreSum + maxScore;
+                //scoreSum = scoreSum + (embeddingScoreSum/100);
             }
 
             //System.out.println(subjects);
 
 
-            oaScore = 1-((scoreSum/totalSize)/(1+Math.abs(scoreSum/totalSize)));
+            //oaScore = 1-((scoreSum/totalSize)/(1+Math.abs(scoreSum/totalSize)));
+            oaScore = 1-((1)/(1+Math.exp(-((8*(scoreSum/totalSize))-5.5))));
 
-        }
+        //}
         //System.out.println("Rule: "+r.toString()+"\tOAScore: "+oaScore);
         r.setOAScore(oaScore);
         return oaScore;
     }
 
     @Override
-    public void evaluate(){
+    public void evaluate(String model){
 
-        LOGGER.info("Starting evaluation...");
 
-        try{
+
+        LOGGER.info("Starting evaluation..."+model);
+
+        try {
+            /*if(model.equals("TransE")){
             System.out.println("Evaluating TransE with L1");
-            for (double i = 0; i <= 50; i += 1) {
+            for (double i = 0; i <= 51; i += 1) {
                 this.benchmark = new HashMap<>();
                 this.result = new HashMap<>();
                 BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
-                BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEL1new.txt"))));
+                BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEL1avg.txt"))));
                 String line = "";
 
-                while((line = benchmarkRead.readLine()) != null){
+                while ((line = benchmarkRead.readLine()) != null) {
                     String[] rLine = line.split("\\s++");
-                    if(rLine.length==2){
+                    if (rLine.length == 2) {
                         /*if (this.benchmark.containsKey(rLine[0])){
                             this.benchmark.get(rLine[0]).add(rLine[1]);
                             continue;
@@ -932,27 +946,29 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                         Set<String> classes = new HashSet<>();
                         classes.add(rLine[1]);
                         this.benchmark.put(rLine[0], classes);*/
-                        continue;
+                       /* continue;
                     }
-                    if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"))){
-                        this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">")).add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0].substring(1,rLine[0].length()-1)+">"));
+                    if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"))) {
+                        this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">")).add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0].substring(1, rLine[0].length() - 1) + ">"));
                         continue;
                     }
                     Set<ByteString> classes = new HashSet<>();
-                    classes.add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0]+">"));
-                    this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"), classes);
+                    classes.add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0] + ">"));
+                    this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"), classes);
 
 
                 }
 
 
-
-                while((line = resultRead.readLine()) != null){
+                while ((line = resultRead.readLine()) != null) {
                     String[] rLine = line.split("\\s++");
-                    if (Double.parseDouble(rLine[3]) > ((double)i)/2) {
+                    if (i == 51) {
+                        i = 9999;
+                    }
+                    if (Double.parseDouble(rLine[3]) > ((double) i) / 2) {
                         continue;
                     }
-                    if (this.result.containsKey(ByteString.of(rLine[2]))){
+                    if (this.result.containsKey(ByteString.of(rLine[2]))) {
                         this.result.get(ByteString.of(rLine[2])).add(ByteString.of(rLine[0]));
                         continue;
                     }
@@ -966,40 +982,42 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 }*/
 
 
+                /*double intersectionCount = 0.0;
+                for (ByteString property : embedding.relation2id) {
+                    /*if (this.benchmark.containsKey(property) && !(this.result.containsKey(property))){
+                        System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                    }*/
 
-                double intersectionCount = 0.0;
-                for (ByteString property : embedding.relation2id){
-                    //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
-                    if (this.benchmark.containsKey(property) && this.result.containsKey(property)){
+                    /*if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
                         //System.out.println("in");
                         Set<ByteString> benchmarkEntities = new HashSet<>();
-                        for (ByteString kbClassBenchmark : this.benchmark.get(property)){
+                        for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
 
 
                             Set<ByteString> entities = kb.resultsOneVariable(query);
-                            if (i == 1){
+                            if (i == 1) {
                                 //System.out.println("Benchmark entities: "+entities.size());
                             }
 
 
-                            for (ByteString entity : entities){
-                                if (!(benchmarkEntities.contains(entity))){
+                            for (ByteString entity : entities) {
+                                if (!(benchmarkEntities.contains(entity))) {
                                     benchmarkEntities.add(entity);
                                 }
                             }
                         }
 
                         Set<ByteString> resultEntities = new HashSet<>();
-                        for (ByteString kbClassResult : this.result.get(property)){
+                        for (ByteString kbClassResult : this.result.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
 
                             Set<ByteString> entities = kb.resultsOneVariable(query);
                             //System.out.println("Result entities: "+entities.size());
-                            for (ByteString entity : entities){
-                                if (!(resultEntities.contains(entity))){
+                            for (ByteString entity : entities) {
+                                if (!(resultEntities.contains(entity))) {
                                     resultEntities.add(entity);
                                 }
                             }
@@ -1013,9 +1031,9 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 }
                 double benchmarkSetSize = 0.0;
                 double resultSetSize = 0.0;
-                for (ByteString property : embedding.relation2id){
-                    if (this.benchmark.containsKey(property)){
-                        for (ByteString kbClassBenchmark : this.benchmark.get(property)){
+                for (ByteString property : embedding.relation2id) {
+                    if (this.benchmark.containsKey(property)) {
+                        for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
 
@@ -1024,8 +1042,8 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                             benchmarkSetSize = benchmarkSetSize + entities.size();
                         }
                     }
-                    if (this.result.containsKey(property)){
-                        for (ByteString kbClassResult : this.result.get(property)){
+                    if (this.result.containsKey(property)) {
+                        for (ByteString kbClassResult : this.result.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
 
@@ -1037,27 +1055,26 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                     }
                 }
 
-                double precision = intersectionCount/resultSetSize;
+                double precision = intersectionCount / resultSetSize;
 
-                double recall = intersectionCount/benchmarkSetSize;
+                double recall = intersectionCount / benchmarkSetSize;
 
-                System.out.println("Precision with TH "+i+" : "+intersectionCount+" / "+resultSetSize+" = "+precision);
-                System.out.println("Recall with TH "+i+" : "+intersectionCount+" / "+benchmarkSetSize+" = "+recall);
+                System.out.println("Precision with TH " + i + " : " + intersectionCount + " / " + resultSetSize + " = " + precision);
+                System.out.println("Recall with TH " + i + " : " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
             }
 
 
-
             System.out.println("Evaluating TransE with L2");
-            for (double i = 0; i <= 50; i += 1) {
+            for (double i = 0; i <= 51; i += 1) {
                 this.benchmark = new HashMap<>();
                 this.result = new HashMap<>();
                 BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
-                BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEL2new.txt"))));
+                BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEL2avg.txt"))));
                 String line = "";
 
-                while((line = benchmarkRead.readLine()) != null){
+                while ((line = benchmarkRead.readLine()) != null) {
                     String[] rLine = line.split("\\s++");
-                    if(rLine.length==2){
+                    if (rLine.length == 2) {
                         /*if (this.benchmark.containsKey(rLine[0])){
                             this.benchmark.get(rLine[0]).add(rLine[1]);
                             continue;
@@ -1065,27 +1082,29 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                         Set<String> classes = new HashSet<>();
                         classes.add(rLine[1]);
                         this.benchmark.put(rLine[0], classes);*/
-                        continue;
+                        /*continue;
                     }
-                    if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"))){
-                        this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">")).add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0].substring(1,rLine[0].length()-1)+">"));
+                    if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"))) {
+                        this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">")).add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0].substring(1, rLine[0].length() - 1) + ">"));
                         continue;
                     }
                     Set<ByteString> classes = new HashSet<>();
-                    classes.add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0]+">"));
-                    this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"), classes);
+                    classes.add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0] + ">"));
+                    this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"), classes);
 
 
                 }
 
 
-
-                while((line = resultRead.readLine()) != null){
+                while ((line = resultRead.readLine()) != null) {
                     String[] rLine = line.split("\\s++");
-                    if (Double.parseDouble(rLine[3])*10 > ((double)i)/2) {
+                    if (i == 51) {
+                        i = 9999;
+                    }
+                    if (Double.parseDouble(rLine[3]) * 10 > ((double) i) / 2) {
                         continue;
                     }
-                    if (this.result.containsKey(ByteString.of(rLine[2]))){
+                    if (this.result.containsKey(ByteString.of(rLine[2]))) {
                         this.result.get(ByteString.of(rLine[2])).add(ByteString.of(rLine[0]));
                         continue;
                     }
@@ -1099,35 +1118,37 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 }*/
 
 
-
-                double intersectionCount = 0.0;
-                for (ByteString property : embedding.relation2id){
+                /*double intersectionCount = 0.0;
+                for (ByteString property : embedding.relation2id) {
                     //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
-                    if (this.benchmark.containsKey(property) && this.result.containsKey(property)){
+                    /*if (this.benchmark.containsKey(property) && !(this.result.containsKey(property))){
+                        System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                    }*/
+                    /*if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
                         //System.out.println("in");
                         Set<ByteString> benchmarkEntities = new HashSet<>();
-                        for (ByteString kbClassBenchmark : this.benchmark.get(property)){
+                        for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
 
                             Set<ByteString> entities = kb.resultsOneVariable(query);
                             //System.out.println("Benchmark entities: "+entities.size());
-                            for (ByteString entity : entities){
-                                if (!(benchmarkEntities.contains(entity))){
+                            for (ByteString entity : entities) {
+                                if (!(benchmarkEntities.contains(entity))) {
                                     benchmarkEntities.add(entity);
                                 }
                             }
                         }
 
                         Set<ByteString> resultEntities = new HashSet<>();
-                        for (ByteString kbClassResult : this.result.get(property)){
+                        for (ByteString kbClassResult : this.result.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
 
                             Set<ByteString> entities = kb.resultsOneVariable(query);
                             //System.out.println("Result entities: "+entities.size());
-                            for (ByteString entity : entities){
-                                if (!(resultEntities.contains(entity))){
+                            for (ByteString entity : entities) {
+                                if (!(resultEntities.contains(entity))) {
                                     resultEntities.add(entity);
                                 }
                             }
@@ -1143,9 +1164,9 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 }
                 double benchmarkSetSize = 0.0;
                 double resultSetSize = 0.0;
-                for (ByteString property : embedding.relation2id){
-                    if (this.benchmark.containsKey(property)){
-                        for (ByteString kbClassBenchmark : this.benchmark.get(property)){
+                for (ByteString property : embedding.relation2id) {
+                    if (this.benchmark.containsKey(property)) {
+                        for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
 
@@ -1154,8 +1175,8 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                             benchmarkSetSize = benchmarkSetSize + entities.size();
                         }
                     }
-                    if (this.result.containsKey(property)){
-                        for (ByteString kbClassResult : this.result.get(property)){
+                    if (this.result.containsKey(property)) {
+                        for (ByteString kbClassResult : this.result.get(property)) {
 
                             ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
 
@@ -1167,187 +1188,12 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                     }
                 }
 
-                double precision = intersectionCount/resultSetSize;
+                double precision = intersectionCount / resultSetSize;
 
-                double recall = intersectionCount/benchmarkSetSize;
+                double recall = intersectionCount / benchmarkSetSize;
 
-                System.out.println("Precision with TH "+i+" : "+intersectionCount+" / "+resultSetSize+" = "+precision);
-                System.out.println("Recall with TH "+i+" : "+intersectionCount+" / "+benchmarkSetSize+" = "+recall);
-            }
-
-
-            System.out.println("Evaluating TransE with L1 rules only");
-            for (double i = 0; i <= 50; i += 1) {
-                this.benchmark = new HashMap<>();
-                this.result = new HashMap<>();
-                BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
-                BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEL1new.txt"))));
-                String line = "";
-
-                while((line = benchmarkRead.readLine()) != null){
-                    String[] rLine = line.split("\\s++");
-                    if(rLine.length==2){
-                        /*if (this.benchmark.containsKey(rLine[0])){
-                            this.benchmark.get(rLine[0]).add(rLine[1]);
-                            continue;
-                        }
-                        Set<String> classes = new HashSet<>();
-                        classes.add(rLine[1]);
-                        this.benchmark.put(rLine[0], classes);*/
-                        continue;
-                    }
-                    if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"))){
-                        this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">")).add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0].substring(1,rLine[0].length()-1)+">"));
-                        continue;
-                    }
-                    Set<ByteString> classes = new HashSet<>();
-                    classes.add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0]+">"));
-                    this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"), classes);
-
-
-                }
-
-
-
-                while((line = resultRead.readLine()) != null){
-                    String[] rLine = line.split("\\s++");
-                    if (Double.parseDouble(rLine[3]) > ((double)i)/2) {
-                        continue;
-                    }
-                    if (this.result.containsKey(ByteString.of(rLine[2]))){
-                        this.result.get(ByteString.of(rLine[2])).add(ByteString.of(rLine[0]));
-                        continue;
-                    }
-                    Set<ByteString> classes = new HashSet<>();
-                    classes.add(ByteString.of(rLine[0]));
-                    this.result.put(ByteString.of(rLine[2]), classes);
-                }
-
-                /*for(String test : this.benchmark.get("P735")){
-                System.out.println(test.substring(1,test.length()-2));
-                }*/
-
-
-
-                double intersectionCount = 0.0;
-                for (ByteString property : embedding.relation2id){
-                    //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
-                    if (this.benchmark.containsKey(property) && this.result.containsKey(property)){
-                        //System.out.println("in");
-                        Set<ByteString> benchmarkEntities = new HashSet<>();
-                        for (ByteString kbClassBenchmark : this.benchmark.get(property)){
-
-                            if (this.result.get(property).contains(kbClassBenchmark)) {
-                                intersectionCount++;
-                            }
-                        }
-
-                    }
-                }
-                double benchmarkSetSize = 0.0;
-                double resultSetSize = 0.0;
-                for (ByteString property : embedding.relation2id){
-                    if (this.benchmark.containsKey(property)){
-                        benchmarkSetSize = benchmarkSetSize + this.benchmark.get(property).size();
-                    }
-                    if (this.result.containsKey(property)){
-                        resultSetSize = resultSetSize + this.result.get(property).size();
-                    }
-                }
-
-                double precision = intersectionCount/resultSetSize;
-
-                double recall = intersectionCount/benchmarkSetSize;
-
-                System.out.println("Precision with TH "+i+" : "+intersectionCount+" / "+resultSetSize+" = "+precision);
-                System.out.println("Recall with TH "+i+" : "+intersectionCount+" / "+benchmarkSetSize+" = "+recall);
-            }
-
-            System.out.println("Evaluating TransE with L2 rules only");
-            for (double i = 0; i <= 50; i += 1) {
-                this.benchmark = new HashMap<>();
-                this.result = new HashMap<>();
-                BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
-                BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEL2new.txt"))));
-                String line = "";
-
-                while((line = benchmarkRead.readLine()) != null){
-                    String[] rLine = line.split("\\s++");
-                    if(rLine.length==2){
-                        /*if (this.benchmark.containsKey(rLine[0])){
-                            this.benchmark.get(rLine[0]).add(rLine[1]);
-                            continue;
-                        }
-                        Set<String> classes = new HashSet<>();
-                        classes.add(rLine[1]);
-                        this.benchmark.put(rLine[0], classes);*/
-                        continue;
-                    }
-                    if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"))){
-                        this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">")).add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0].substring(1,rLine[0].length()-1)+">"));
-                        continue;
-                    }
-                    Set<ByteString> classes = new HashSet<>();
-                    classes.add(ByteString.of("<http://www.wikidata.org/entity/"+rLine[0]+">"));
-                    this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/"+rLine[2]+">"), classes);
-
-
-                }
-
-
-
-                while((line = resultRead.readLine()) != null){
-                    String[] rLine = line.split("\\s++");
-                    if (Double.parseDouble(rLine[3])*10 > ((double)i)/2) {
-                        continue;
-                    }
-                    if (this.result.containsKey(ByteString.of(rLine[2]))){
-                        this.result.get(ByteString.of(rLine[2])).add(ByteString.of(rLine[0]));
-                        continue;
-                    }
-                    Set<ByteString> classes = new HashSet<>();
-                    classes.add(ByteString.of(rLine[0]));
-                    this.result.put(ByteString.of(rLine[2]), classes);
-                }
-
-                /*for(String test : this.benchmark.get("P735")){
-                System.out.println(test.substring(1,test.length()-2));
-                }*/
-
-
-
-                double intersectionCount = 0.0;
-                for (ByteString property : embedding.relation2id){
-                    //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
-                    if (this.benchmark.containsKey(property) && this.result.containsKey(property)){
-                        //System.out.println("in");
-                        Set<ByteString> benchmarkEntities = new HashSet<>();
-                        for (ByteString kbClassBenchmark : this.benchmark.get(property)){
-
-                            if (this.result.get(property).contains(kbClassBenchmark)) {
-                                intersectionCount++;
-                            }
-                        }
-
-                    }
-                }
-                double benchmarkSetSize = 0.0;
-                double resultSetSize = 0.0;
-                for (ByteString property : embedding.relation2id){
-                    if (this.benchmark.containsKey(property)){
-                        benchmarkSetSize = benchmarkSetSize + this.benchmark.get(property).size();
-                    }
-                    if (this.result.containsKey(property)){
-                        resultSetSize = resultSetSize + this.result.get(property).size();
-                    }
-                }
-
-                double precision = intersectionCount/resultSetSize;
-
-                double recall = intersectionCount/benchmarkSetSize;
-
-                System.out.println("Precision with TH "+i+" : "+intersectionCount+" / "+resultSetSize+" = "+precision);
-                System.out.println("Recall with TH "+i+" : "+intersectionCount+" / "+benchmarkSetSize+" = "+recall);
+                System.out.println("Precision with TH " + i + " : " + intersectionCount + " / " + resultSetSize + " = " + precision);
+                System.out.println("Recall with TH " + i + " : " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
             }
 
 
@@ -1360,7 +1206,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                     this.benchmark = new HashMap<>();
                     this.result = new HashMap<>();
                     BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
-                    BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEHybridL2new.txt"))));
+                    BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEHybridL2OnlySubject.txt"))));
                     String line = "";
 
                     while ((line = benchmarkRead.readLine()) != null) {
@@ -1373,7 +1219,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                         Set<String> classes = new HashSet<>();
                         classes.add(rLine[1]);
                         this.benchmark.put(rLine[0], classes);*/
-                            continue;
+                            /*continue;
                         }
                         if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"))) {
                             this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">")).add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0].substring(1, rLine[0].length() - 1) + ">"));
@@ -1389,7 +1235,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
                     while ((line = resultRead.readLine()) != null) {
                         String[] rLine = line.split("\\s++");
-                        if (Double.parseDouble(rLine[(int)j]) < ((double)i)/10) {
+                        if (Double.parseDouble(rLine[(int) j]) < ((double) i) / 10) {
                             continue;
                         }
                         if (this.result.containsKey(ByteString.of(rLine[2]))) {
@@ -1406,10 +1252,13 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 }*/
 
 
-                    double intersectionCount = 0.0;
+                    /*double intersectionCount = 0.0;
                     for (ByteString property : embedding.relation2id) {
                         //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
-                        if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
+                        /*if (this.benchmark.containsKey(property) && !(this.result.containsKey(property))){
+                            System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                        }*/
+                        /*if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
                             //System.out.println("in");
                             Set<ByteString> benchmarkEntities = new HashSet<>();
                             for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
@@ -1480,8 +1329,8 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
                     double recall = intersectionCount / benchmarkSetSize;
 
-                    System.out.println("Precision with TH " + i + " and lambda "+(j-5)/10+": " + intersectionCount + " / " + resultSetSize + " = " + precision);
-                    System.out.println("Recall with TH " + i + " and lambda "+(j-5)/10+": " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
+                    System.out.println("Precision with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + resultSetSize + " = " + precision);
+                    System.out.println("Recall with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
                 }
             }
 
@@ -1493,7 +1342,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                     this.benchmark = new HashMap<>();
                     this.result = new HashMap<>();
                     BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
-                    BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEHybridL1new.txt"))));
+                    BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransEHybridL1OnlySubject.txt"))));
                     String line = "";
 
                     while ((line = benchmarkRead.readLine()) != null) {
@@ -1506,7 +1355,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                         Set<String> classes = new HashSet<>();
                         classes.add(rLine[1]);
                         this.benchmark.put(rLine[0], classes);*/
-                            continue;
+                            /*continue;
                         }
                         if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"))) {
                             this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">")).add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0].substring(1, rLine[0].length() - 1) + ">"));
@@ -1522,7 +1371,7 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
                     while ((line = resultRead.readLine()) != null) {
                         String[] rLine = line.split("\\s++");
-                        if (Double.parseDouble(rLine[(int)j]) < ((double)i)/10) {
+                        if (Double.parseDouble(rLine[(int) j]) < ((double) i) / 10) {
                             continue;
                         }
                         if (this.result.containsKey(ByteString.of(rLine[2]))) {
@@ -1539,10 +1388,13 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
                 }*/
 
 
-                    double intersectionCount = 0.0;
+                    /*double intersectionCount = 0.0;
                     for (ByteString property : embedding.relation2id) {
                         //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
-                        if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
+                        /*if (this.benchmark.containsKey(property) && !(this.result.containsKey(property))){
+                            System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                        }*/
+                        /*if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
                             //System.out.println("in");
                             Set<ByteString> benchmarkEntities = new HashSet<>();
                             for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
@@ -1613,18 +1465,329 @@ public class OldSchemaAttributeMiningAssistant extends MiningAssistant {
 
                     double recall = intersectionCount / benchmarkSetSize;
 
-                    System.out.println("Precision with TH " + i + " and lambda "+(j-5)/10+": " + intersectionCount + " / " + resultSetSize + " = " + precision);
-                    System.out.println("Recall with TH " + i + " and lambda "+(j-5)/10+": " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
+                    System.out.println("Precision with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + resultSetSize + " = " + precision);
+                    System.out.println("Recall with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
                 }
             }
 
-            LOGGER.info("Finished evaluation");
+
+
+
+        } else if(model.equals("TransH")) {
+
+
+
+                System.out.println("Evaluating TransH with Hybrid and L1");
+                for (int i = 0; i <= 10; i += 1) {
+                    for (double j = 5; j <= 15; j++) {
+
+
+                        this.benchmark = new HashMap<>();
+                        this.result = new HashMap<>();
+                        BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
+                        BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransHL1Hybridavg.txt"))));
+                        String line = "";
+
+                        while ((line = benchmarkRead.readLine()) != null) {
+                            String[] rLine = line.split("\\s++");
+                            if (rLine.length == 2) {
+                        /*if (this.benchmark.containsKey(rLine[0])){
+                            this.benchmark.get(rLine[0]).add(rLine[1]);
+                            continue;
+                        }
+                        Set<String> classes = new HashSet<>();
+                        classes.add(rLine[1]);
+                        this.benchmark.put(rLine[0], classes);*/
+                                /*continue;
+                            }
+                            if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"))) {
+                                this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">")).add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0].substring(1, rLine[0].length() - 1) + ">"));
+                                continue;
+                            }
+                            Set<ByteString> classes = new HashSet<>();
+                            classes.add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0] + ">"));
+                            this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"), classes);
+
+
+                        }
+
+
+                        while ((line = resultRead.readLine()) != null) {
+                            String[] rLine = line.split("\\s++");
+                            if (Double.parseDouble(rLine[(int) j]) < ((double) i) / 10) {
+                                continue;
+                            }
+                            if (this.result.containsKey(ByteString.of(rLine[2]))) {
+                                this.result.get(ByteString.of(rLine[2])).add(ByteString.of(rLine[0]));
+                                continue;
+                            }
+                            Set<ByteString> classes = new HashSet<>();
+                            classes.add(ByteString.of(rLine[0]));
+                            this.result.put(ByteString.of(rLine[2]), classes);
+                        }
+
+                /*for(String test : this.benchmark.get("P735")){
+                System.out.println(test.substring(1,test.length()-2));
+                }*/
+
+
+                        /*double intersectionCount = 0.0;
+                        for (ByteString property : embedding.relation2id) {
+                            //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                        /*if (this.benchmark.containsKey(property) && !(this.result.containsKey(property))){
+                            System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                        }*/
+                            /*if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
+                                //System.out.println("in");
+                                Set<ByteString> benchmarkEntities = new HashSet<>();
+                                for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
+
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    if (i == 1) {
+                                        //System.out.println("Benchmark entities: " + entities.size());
+                                    }
+
+
+                                    for (ByteString entity : entities) {
+                                        if (!(benchmarkEntities.contains(entity))) {
+                                            benchmarkEntities.add(entity);
+                                        }
+                                    }
+                                }
+
+                                Set<ByteString> resultEntities = new HashSet<>();
+                                for (ByteString kbClassResult : this.result.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    //System.out.println("Result entities: "+entities.size());
+                                    for (ByteString entity : entities) {
+                                        if (!(resultEntities.contains(entity))) {
+                                            resultEntities.add(entity);
+                                        }
+                                    }
+                                }
+
+                                Set<ByteString> intersection = new HashSet<>(benchmarkEntities);
+                                intersection.retainAll(resultEntities);
+
+                                intersectionCount = intersectionCount + intersection.size();
+                            }
+                        }
+                        double benchmarkSetSize = 0.0;
+                        double resultSetSize = 0.0;
+                        for (ByteString property : embedding.relation2id) {
+                            if (this.benchmark.containsKey(property)) {
+                                for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    //System.out.println("No of entities benchmark: "+entities.size());
+                                    benchmarkSetSize = benchmarkSetSize + entities.size();
+                                }
+                            }
+                            if (this.result.containsKey(property)) {
+                                for (ByteString kbClassResult : this.result.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    //System.out.println("No of entities result: "+entities.size());
+                                    resultSetSize = resultSetSize + entities.size();
+
+                                }
+                            }
+                        }
+
+                        double precision = intersectionCount / resultSetSize;
+
+                        double recall = intersectionCount / benchmarkSetSize;
+
+                        System.out.println("Precision with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + resultSetSize + " = " + precision);
+                        System.out.println("Recall with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
+                    }
+                }
+
+                System.out.println("Sampling random rules");
+                for (int i = 0; i <= 10; i += 1) {
+                    for (double j = 5; j <= 15; j++) {
+
+
+                        this.benchmark = new HashMap<>();
+                        this.result = new HashMap<>();
+                        BufferedReader benchmarkRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/wikidataVerif.tsv"))));
+                        BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransHL2Hybridavg.txt"))));
+                        String line = "";
+
+                        while ((line = benchmarkRead.readLine()) != null) {
+                            String[] rLine = line.split("\\s++");
+                            if (rLine.length == 2) {
+                        /*if (this.benchmark.containsKey(rLine[0])){
+                            this.benchmark.get(rLine[0]).add(rLine[1]);
+                            continue;
+                        }
+                        Set<String> classes = new HashSet<>();
+                        classes.add(rLine[1]);
+                        this.benchmark.put(rLine[0], classes);*/
+                                /*continue;
+                            }
+                            if (this.benchmark.containsKey(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"))) {
+                                this.benchmark.get(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">")).add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0].substring(1, rLine[0].length() - 1) + ">"));
+                                continue;
+                            }
+                            Set<ByteString> classes = new HashSet<>();
+                            classes.add(ByteString.of("<http://www.wikidata.org/entity/" + rLine[0] + ">"));
+                            this.benchmark.put(ByteString.of("<http://www.wikidata.org/prop/direct/" + rLine[2] + ">"), classes);
+
+
+                        }
+
+
+                        while ((line = resultRead.readLine()) != null) {
+                            String[] rLine = line.split("\\s++");
+                            if (Double.parseDouble(rLine[(int) j]) < ((double) i) / 10) {
+                                continue;
+                            }
+                            if (this.result.containsKey(ByteString.of(rLine[2]))) {
+                                this.result.get(ByteString.of(rLine[2])).add(ByteString.of(rLine[0]));
+                                continue;
+                            }
+                            Set<ByteString> classes = new HashSet<>();
+                            classes.add(ByteString.of(rLine[0]));
+                            this.result.put(ByteString.of(rLine[2]), classes);
+                        }
+
+                /*for(String test : this.benchmark.get("P735")){
+                System.out.println(test.substring(1,test.length()-2));
+                }*/
+
+
+                        /*double intersectionCount = 0.0;
+                        for (ByteString property : embedding.relation2id) {
+                            //System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                        /*if (this.benchmark.containsKey(property) && !(this.result.containsKey(property))){
+                            System.out.println("Checking: "+property.toString()+"\t"+"in benchmark: "+this.benchmark.containsKey(property)+" in result: "+this.result.containsKey(property));
+                        }*/
+                            /*if (this.benchmark.containsKey(property) && this.result.containsKey(property)) {
+                                //System.out.println("in");
+                                Set<ByteString> benchmarkEntities = new HashSet<>();
+                                for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
+
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    if (i == 1) {
+                                        //System.out.println("Benchmark entities: " + entities.size());
+                                    }
+
+
+                                    for (ByteString entity : entities) {
+                                        if (!(benchmarkEntities.contains(entity))) {
+                                            benchmarkEntities.add(entity);
+                                        }
+                                    }
+                                }
+
+                                Set<ByteString> resultEntities = new HashSet<>();
+                                for (ByteString kbClassResult : this.result.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    //System.out.println("Result entities: "+entities.size());
+                                    for (ByteString entity : entities) {
+                                        if (!(resultEntities.contains(entity))) {
+                                            resultEntities.add(entity);
+                                        }
+                                    }
+                                }
+
+                                Set<ByteString> intersection = new HashSet<>(benchmarkEntities);
+                                intersection.retainAll(resultEntities);
+
+                                intersectionCount = intersectionCount + intersection.size();
+                            }
+                        }
+                        double benchmarkSetSize = 0.0;
+                        double resultSetSize = 0.0;
+                        for (ByteString property : embedding.relation2id) {
+                            if (this.benchmark.containsKey(property)) {
+                                for (ByteString kbClassBenchmark : this.benchmark.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, kbClassBenchmark);
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    //System.out.println("No of entities benchmark: "+entities.size());
+                                    benchmarkSetSize = benchmarkSetSize + entities.size();
+                                }
+                            }
+                            if (this.result.containsKey(property)) {
+                                for (ByteString kbClassResult : this.result.get(property)) {
+
+                                    ByteString[] query = KB.triple(ByteString.of("?x"), concept, ByteString.of(kbClassResult));
+
+                                    Set<ByteString> entities = kb.resultsOneVariable(query);
+                                    //System.out.println("No of entities result: "+entities.size());
+                                    resultSetSize = resultSetSize + entities.size();
+
+                                }
+                            }
+                        }
+
+                        double precision = intersectionCount / resultSetSize;
+
+                        double recall = intersectionCount / benchmarkSetSize;
+
+                        System.out.println("Precision with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + resultSetSize + " = " + precision);
+                        System.out.println("Recall with TH " + i + " and lambda " + (j - 5) / 10 + ": " + intersectionCount + " / " + benchmarkSetSize + " = " + recall);
+                    }
+                }*/
+
+                System.out.println("Sampling random rules");
+
+
+
+
+                        ArrayList<String> ruleList = new ArrayList<>();
+                        ArrayList<String> resultList = new ArrayList<>();
+                        Random rand = new Random();
+
+
+                        BufferedReader resultRead = new BufferedReader(new InputStreamReader(new FileInputStream(new File("/home/hessler/Documents/final/allRulesTransHL2Hybridavg.txt"))));
+                        String line = "";
+
+
+
+                        while ((line = resultRead.readLine()) != null) {
+                            String[] rLine = line.split("\\s++");
+                            if (Double.parseDouble(rLine[12]) < (0.9)) {
+                                continue;
+                            }
+
+                            ruleList.add(rLine[0]+" "+rLine[1]+" "+rLine[2]);
+                        }
+
+                        while(resultList.size()<100){
+                            resultList.add(ruleList.get(rand.nextInt(ruleList.size())));
+                        }
+
+
+
+
+
+
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-
+        LOGGER.info("Finished evaluation");
 
     }
 
